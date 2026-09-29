@@ -5,6 +5,8 @@
 `chat-crystal-forge` (working product name: CrystalForge) is a conversational
 workspace for preparing molecular-crystal structures. Its core is an agentic
 inspect–repair–validate loop, shared by a terminal interface and a browser UI.
+The first task is experimental CIF preparation for wet-lab users: disorder
+resolution and hydrogen completion, ending in CIF files and operation/check records.
 Reuse MolCrysKit for structure perception and approved operations, and MatterVis
 for visualization. Build the workflow and real task experience, not a new
 chemistry engine or a generic chatbot.
@@ -19,6 +21,7 @@ Do not describe proposed features as working or unreviewed choices as approved.
 | Area | Reference |
 | --- | --- |
 | Workflow, adapters, completion checks, testing | [Architecture](docs/architecture.md) |
+| Disorder, missing hydrogens and MCK acceptance | [Structure preparation](docs/structure-preparation.md) |
 | CLI, TUI, browser panels, typography and colors | [Interfaces](docs/interfaces.md) |
 | OpenAI-compatible endpoints and environment variables | [Configuration](docs/configuration.md) |
 | Submodule checkout, upgrades and reuse boundaries | [Upstream dependencies](docs/upstream.md) |
@@ -31,8 +34,9 @@ development instructions independent of the context in which the project is show
 
 ## Integrity and implementation guidance
 
-The all-structures-pass goal is confirmed. The mechanisms below are working design
-guidance; unresolved scope and interface choices remain open in the decision log.
+The first repair scope, MCK acceptance policy and two frontends are confirmed.
+The mechanisms below are working design guidance; remaining implementation details
+and task-specific scientific choices are recorded in the decision log.
 
 - Keep one workflow core for TUI and UI. Frontends present state and user decisions;
 	they must not implement separate repair or validation policies.
@@ -43,6 +47,9 @@ guidance; unresolved scope and interface choices remain open in the decision log
 	independently reloaded and validated under the same policy.
 - A skipped check, missing result, missing output, or exception is not a pass.
 	Do not weaken checks or remove failed inputs to manufacture completion.
+- Use the existing MCK sanity criteria for the first release, not a new chemistry
+	validation engine. Ask for unresolved disorder strategy/count and chemical
+	ambiguity; do not silently enumerate every replica or equate `optimal` with energy.
 - Preserve original inputs and operation history. Ask for scientific decisions
 	when evidence is insufficient; detect repeated no-progress attempts and expose
 	the unresolved state rather than retrying indefinitely.

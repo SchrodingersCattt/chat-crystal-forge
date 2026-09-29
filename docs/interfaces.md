@@ -45,7 +45,8 @@ are proposals for review, not a fully approved implementation checklist.
   color alone to communicate status.
 
 Rendering may differ between the frontends, but the TUI is not a log-only client.
-The first repair scenarios remain open in [Decisions](decisions.md).
+The first repair scenarios are disorder and missing hydrogens; see
+[Structure preparation](structure-preparation.md) for decisions and delivery rules.
 
 ## Browser UI
 

@@ -3,8 +3,10 @@
 Status: engineering draft. The user has requested the shared agentic workflow,
 MCK/MatterVis reuse, and the same core task journey in both first-release frontends.
 MIT licensing and `mat-chat tui` / `mat-chat ui` are confirmed. Concrete repair scope,
-validation policy, runtime installation and implementation details still need
-confirmation. No runtime is implemented yet.
+delivery and acceptance are now defined in [Structure preparation](structure-preparation.md):
+disorder and missing hydrogens, CIF plus records, and existing MCK sanity criteria
+with explicit handling of incomplete execution and ambiguity. Runtime installation
+and implementation details remain open. No runtime is implemented yet.
 
 ## Task and user
 
@@ -12,6 +14,11 @@ A researcher supplies crystal structures and describes the intended preparation.
 The application inspects each structure, selects supported operations, checks
 their results, and continues until the declared batch meets the agreed checks.
 The researcher can inspect changes and answer questions without writing scripts.
+
+The first user is a wet-lab researcher supplying experimental CIF data. Prepare
+starting structures by resolving disorder and adding missing hydrogens. Deliver
+processed CIFs and operation/check records, not calculation-specific input decks,
+an energy optimization or submitted compute jobs.
 
 The proposed demonstration contrasts a skilled user's repeated manual work with
 a conversational batch run. A 100-structure run is a demonstration target, not a
@@ -47,7 +54,8 @@ for checkout, installation boundaries and upgrade policy.
 1. Register a nonempty input batch. Keep originals unchanged and assign stable
    input IDs; filenames alone are not sufficient identity.
 2. Translate the request into supported operations and a proposed check policy.
-   Resolve consequential ambiguity before changing structures.
+  Resolve consequential ambiguity before changing structures, including disorder
+  mode and output count when not supplied by the user.
 3. Confirm the policy and record its check names, prerequisites and parameters.
 4. Inspect each structure and collect structured findings.
 5. Have the agent select an allowed operation and validated arguments. Execute
@@ -73,6 +81,10 @@ as a deterministic, fail-closed condition rather than a model response:
 - The input set is nonempty and every declared input has its required outputs.
   If a task produces multiple candidates, record the approved input/output mapping
   and validate every deliverable; never silently discard a difficult input.
+  This means the selected delivery set, not every theoretically possible replica.
+- Complete the requested disorder and hydrogen operations and resolve consequential
+  warnings. An initially passing sanity report cannot substitute for an explicitly
+  requested preparation step.
 - The required check set is nonempty. Every required check has a result for the
   current exported structure revision and the recorded policy.
 - Every required result is a real pass. Missing prerequisites, skipped execution,
@@ -111,6 +123,10 @@ inspection note, are authoritative for the current source versions.
   isolated atoms, hydrogen presence, formula consistency and bond distances.
   Topology preservation is a separate two-structure check. These names are an API
   inventory, not a universally appropriate check policy for every material.
+- The owner selected these existing MCK criteria after reviewing their limits:
+  hydrogen presence means at least one H, and the current formula check compares
+  element sets, not exact atom counts. Keep those meanings visible; do not claim
+  complete protonation, exact stoichiometry or energetic validation from a pass.
 - MatterVis web uses Dash/Plotly. `mat_viewer/app/factory.py:create_app` assembles
   a full application; it is not a standalone React component library. Prefer its
   documented scene/figure interfaces when building the new layout.

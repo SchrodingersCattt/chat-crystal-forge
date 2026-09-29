@@ -7,6 +7,10 @@ does not establish that its proposed behavior has been implemented or approved.
 ## Confirmed requirements
 
 - Continue the current molecular-crystal preparation idea.
+- First users are wet-lab researchers with experimental CIFs; first repairs are
+  disorder resolution and missing-hydrogen completion.
+- First-release outputs are processed CIFs and operation/check records, without
+  calculation-specific input files or compute submission.
 - The distinctive work is the agentic workflow and a real problem demonstration.
 - MCK structure perception and MatterVis UI/TUI capabilities may be reused.
 - Successful completion requires all structures to pass sanity checks.
@@ -35,6 +39,19 @@ the owner and by others. See [Licensing](licensing.md) and the root [LICENSE](..
 instead of `start-ui`. No additional alias is planned. Names in
 [Interfaces](interfaces.md) are not published package identifiers yet.
 
+### D3. First scientific task and check policy
+
+**Confirmed: disorder and missing hydrogens; use current MCK sanity criteria.**
+The user selected this policy after the existing hydrogen-presence and
+element-set-only formula checks were explained. Do not introduce an independent
+chemistry validation engine or change upstream checks for the first release.
+
+Ask for unresolved disorder delivery strategy (`optimal`, `random`, `enumerate`),
+requested candidate count and other scientific ambiguity. Never generate every
+replica merely because a scan found many possibilities. Apply explicit user choices
+without repeatedly asking, and handle warnings, incomplete coverage and missing
+results separately from MCK's booleans. See [Structure preparation](structure-preparation.md).
+
 ### D4. First-release TUI/UI parity
 
 **Confirmed: both frontends complete the same core workflow in the first release.**
@@ -52,14 +69,23 @@ upgrades are explicit. The new work is the agentic workflow, shared task state,
 integration and real task demonstration, not the existing structure or rendering
 engines. See [Upstream dependencies](upstream.md).
 
-## Pending owner decisions
+### D6. GitHub publication
 
-### D3. First scientific task and check policy
+**Confirmed: public repository and push authorized.** The user authorized creation
+of `SchrodingersCattt/chat-crystal-forge` through the authenticated GitHub account,
+and explicitly selected public visibility after being informed that source and
+Git history will be readable. Review files/history for secrets before publishing;
+exclude `.env`, personal profiles and unrelated local tooling directories.
 
-**Open.** Identify the first real input set, intended output and problems the
-application should repair automatically. Specify the scientific choices requiring
-confirmation and which checks are mandatory with which prerequisites. Do not treat
-MCK's default check list as a universal definition of a usable crystal.
+## Still needed for implementation and evaluation
+
+- A representative input set and permission to redistribute any public demo data.
+  A proposed 100-input demonstration is not a completed benchmark.
+- Actual endpoint/model configuration, supplied locally rather than in chat.
+- The technical implementation plan and runtime integration tests.
+
+Disorder strategy and chemically ambiguous choices are task-specific runtime
+decisions, not a reason to hard-code one universal mode during project setup.
 
 ## Proposed implementation safeguards
 
@@ -72,8 +98,8 @@ requirements, not evidence that checks have already run.
 ## Current status
 
 Instructions, design drafts, configuration examples and pinned upstream source
-have been prepared. A local Git repository has been initialized; no remote
-repository has been created or published.
+have been prepared. A local Git repository has been initialized and public GitHub
+publication has been authorized.
 No application entry point, repair workflow, live model integration or published
 package exists in this workspace yet. These documents do not complete any separate
 planning/review process automatically.
