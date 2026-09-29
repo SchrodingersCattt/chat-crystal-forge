@@ -29,7 +29,26 @@ investigation. No oracle values, skip rules or assertions were changed.
 The CI runs the full upstream gate without exclusions. Do not publish a new parent
 pin until the upstream commit is reachable and its required validation is resolved.
 
-## Still unverified or unfinished
+## Cartesian aspect correction
+
+A live browser inspection reproduced flattened water meshes: final range spans
+were approximately `(2.02, 1.76, 0.84)`, but automatic Plotly aspect produced
+per-unit scales `(0.87189, 0.81889, 0.46900)`. The Z scale was about 54% of X.
+Mesh vertex extents and canvas dimensions did not explain this anisotropy.
+
+MatterVis now derives manual aspect from final padded ranges in all main display
+modes, and uses the same normalization for the compass. It preserves mesh vertices,
+axis endpoints and explicit camera settings. Browser verification after server
+restart, restoring the existing camera, measured equal scales of approximately
+`(0.49505, 0.49505, 0.49505)` without a frontend-only aspect override.
+
+The new regression file initially failed 11 cases. After the fix, the focused
+aspect/camera suite passed 36 tests (10 existing fixture-dependent skips); the
+parent suite passed all 44 tests. Full MatterVis regression: 1204 passed, 48 skipped,
+with only the same dependency-locked DAP-4 oracle failure. No oracle expectation
+or assertion was changed, and publishing remains blocked on that earlier issue.
+
+## Remaining work
 
 - Live endpoint/model compatibility; local `.env` configuration is needed.
 - User feedback in both interfaces; no hands-on approval has been assumed.
