@@ -1,6 +1,7 @@
 # Design decisions
 
-This is an engineering decision log, not an approved implementation specification.
+This is an engineering decision log. The canonical [Implementation plan](implementation-plan.md)
+separates approved direction from implementation evidence.
 Record explicit user choices separately from recommendations. A draft document
 does not establish that its proposed behavior has been implemented or approved.
 
@@ -82,7 +83,8 @@ exclude `.env`, personal profiles and unrelated local tooling directories.
 - A representative input set and permission to redistribute any public demo data.
   A proposed 100-input demonstration is not a completed benchmark.
 - Actual endpoint/model configuration, supplied locally rather than in chat.
-- The technical implementation plan and runtime integration tests.
+- Main's review of consolidated draft artifacts and actual runtime integration
+  evidence; approval does not establish passing tests.
 
 Disorder strategy and chemically ambiguous choices are task-specific runtime
 decisions, not a reason to hard-code one universal mode during project setup.
@@ -97,9 +99,35 @@ requirements, not evidence that checks have already run.
 
 ## Current status
 
-Instructions, design drafts, configuration examples and pinned upstream source
-have been prepared. A local Git repository has been initialized and public GitHub
-publication has been authorized.
-No application entry point, repair workflow, live model integration or published
-package exists in this workspace yet. These documents do not complete any separate
-planning/review process automatically.
+Only slice 1 (native optional plugin + shared read-only inspection/chat) is actively
+being built. All checklist boxes remain false pending real evidence. The generic
+MatterVis host patch is under validation, not published. No complete app, upstream
+bug fix, live endpoint pass or final user review is asserted here.
+
+### D7. Full-plan approval and frontend ownership
+
+**Confirmed on 2026-09-29:** “Start implementation” followed the complete displayed
+12-section plan and approves proceeding, including actual native MatterVis Dash
+UI/Textual TUI reuse through optional Forge Chat. Do not rewrite viewers.
+MatterVis owns native view state; Forge owns task state. Relevant generic host/view
+fixes belong upstream with regression tests, a reachable commit and then a
+validated parent pin. MCK chemistry bugs follow the same ownership rule. No sleeps
+masking races or blanket ban on relevant upstream changes.
+
+### D8. Framework and staged execution
+
+**Accepted plan:** Python >=3.11, Typer, official OpenAI-compatible SDK, SQLite local
+state, pinned MCK and existing MatterVis apps. Reuse the existing `.venv` as chosen
+by the user. First slice uses one background thread for read-only calls; later
+mutating/heavy jobs use isolated processes. No repairs or `finish` in slice 1.
+Tutorial concepts: https://learn.shareai.run/zh/ s01/03/07/08/11/12/13, not copied
+shell-agent code. See [Spec](../devpost/spec.md) for service boundaries.
+
+### D9. Artifact status and evidence
+
+Scope, PRD, spec and checklist are initially `status: draft` for main's review of
+the consolidation. Approval evidence is recorded separately; do not demand a
+second user sign-off or confuse approval with completion. Build mode is unset
+pending early slice-1 feedback. No personal profile, experience, learning activity
+or hands-on milestone is inferred. Six ordered slices and outstanding reviews are
+tracked in the [Checklist](../devpost/checklist.md).

@@ -10,7 +10,7 @@ it does not claim to have newly implemented the upstream engines.
 | Submodule path | Source | Reused capability |
 | --- | --- | --- |
 | `external/molcryskit` | [MolCrysKit](https://github.com/SchrodingersCattt/MolCrysKit) | Structure perception, selected structure operations and sanity-check functions |
-| `external/mattervis` | [MatterVis](https://github.com/SchrodingersCattt/MatterVis) | Terminal controllers/rendering, web scene/figure construction and suitable UI capabilities |
+| `external/mattervis` | [MatterVis](https://github.com/SchrodingersCattt/MatterVis) | Actual Dash UI and Textual TUI, native controls/rendering and optional extension host |
 
 The initial source pins on 2026-09-29 are MCK
 `a271cb7eaaf333f7a1e9bfcd4ba89383de609592` and MatterVis
@@ -20,8 +20,17 @@ lock file to keep synchronized.
 
 New work belongs in the parent repository: model/tool adapters, batch task state,
 the inspect–repair–validate loop, strict completion checks, shared TUI/UI workflow,
-and tests and examples for the declared task. Keep view and workflow adapters here
-unless an upstream change is specifically requested and reviewed.
+and tests and examples for the declared task. Keep Forge-specific plugins here.
+The approved plan permits relevant generic host/native-view changes in MatterVis
+and chemistry bug fixes in MCK, not unrelated upstream edits. Reproduce bugs and
+add regression tests in the owning repo; do not duplicate state or sleep to mask
+races. Publish a reachable upstream commit before sharing a dependent parent pin.
+
+The minimal `mat_viewer.extensions.Extension` host patch is being integrated by
+main and is under validation, not published. It extends actual `create_app` and
+`CrystalTUI`, not replacement viewers. See [Plugin protocol](plugin-protocol.md)
+for current hooks and the separate future versioned command/event design.
+No upstream bug fix is certified by this note.
 
 ## Checkout and reproducibility
 
@@ -39,9 +48,10 @@ not automatically follow the latest `main`.
 - A downloaded ZIP of the parent repository alone does not provide initialized
   submodule contents. Document this when packaging or distributing source.
 
-The checkout procedure has been verified locally. Neither package has been
-installed into a project Python environment yet. Source tracking is not runtime
-integration, and no application startup commands are available yet.
+Checkout was verified during initial setup; that is not runtime verification.
+Main must record current install/import and launch evidence for the active first
+slice. This documentation task has not run those checks. The accepted environment
+choice is to reuse the existing `.venv`.
 
 ## Runtime installation boundary
 
@@ -84,5 +94,6 @@ and asset permissions separately before using upstream examples in a public demo
 MCK includes an MIT license file. At the initial pin, MatterVis declares MIT in
 its README and package metadata but has no license-text file in its source tree;
 the required notice should be confirmed before redistribution of adapted code.
-No upstream code or license file was changed by this integration.
+This documentation update changes no upstream code or license files and does not
+certify the pending host patch or its redistribution notices.
 See [Licensing](licensing.md) for the owner's commercial-use choice and details.

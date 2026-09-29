@@ -11,16 +11,18 @@ Reuse MolCrysKit for structure perception and approved operations, and MatterVis
 for visualization. Build the workflow and real task experience, not a new
 chemistry engine or a generic chatbot.
 
-This repository contains planning material and pinned upstream source, not a
-runnable application.
-Proposed commands and contracts below are design targets, not implemented APIs.
-Do not describe proposed features as working or unreviewed choices as approved.
+The first implementation is a read-only inspection preview: native MatterVis
+UI/TUI plus Forge Chat, registered CIF copies, MCK reports and persisted sessions.
+Repairs, full batch recovery and `finish` are not implemented. Distinguish live
+endpoint verification from mocked protocol tests and direct inspection commands.
 
 ## Read before changing an area
 
 | Area | Reference |
 | --- | --- |
 | Workflow, adapters, completion checks, testing | [Architecture](docs/architecture.md) |
+| Implementation sequence and current delivery status | [Implementation plan](docs/implementation-plan.md) |
+| Native UI/TUI extension contract | [Plugin protocol](docs/plugin-protocol.md) |
 | Disorder, missing hydrogens and MCK acceptance | [Structure preparation](docs/structure-preparation.md) |
 | CLI, TUI, browser panels, typography and colors | [Interfaces](docs/interfaces.md) |
 | OpenAI-compatible endpoints and environment variables | [Configuration](docs/configuration.md) |
@@ -60,8 +62,10 @@ and task-specific scientific choices are recorded in the decision log.
 - Verify installed upstream APIs before integrating them. Preserve required
 	notices; do not silently copy or modify unrelated upstream repositories.
 - Treat `external/molcryskit` and `external/mattervis` as pinned Git submodules.
-	Keep adapters in this repository; do not edit upstream worktrees or advance
-	their pins without an explicit task. Submodule checkout is not package installation.
+	Generic plugin hooks/viewer bugs belong in MatterVis; chemistry bugs belong in
+	MCK; workflow bugs belong here. Task-related upstream fixes are authorized:
+	reproduce, add regressions, validate, then push/PR upstream before advancing
+	parent pins. Never mask upstream races with sleeps or duplicate view state.
 
 ## Development practice
 
@@ -70,9 +74,10 @@ verified step; discuss unresolved product choices instead of silently choosing
 them. Use kebab-case for repository/distribution names, snake_case for Python
 modules and functions, PascalCase for classes, and camelCase for JavaScript.
 
-No install, run, or test commands have been established yet. Add and verify them
-when implementation begins. Keep optional browser dependencies out of the TUI
-startup path. Test failure, interruption, and blocked states as well as success.
+Install editable MCK and MatterVis submodules before the parent package; see the
+README for exact commands. Run `python -B -m pytest tests` and `ruff check src tests`
+in the parent. Run the full MatterVis suite from its own directory. Keep optional
+browser dependencies out of TUI startup. Test blocked states as well as success.
 For Python syntax-only checks, prefer AST parsing over generating bytecode files.
 
 Keep task files in this workspace. Use `gh`/HTTP APIs for repository research,

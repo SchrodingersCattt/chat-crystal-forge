@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chat-crystal-forge"
+version = "0.1.0"
+description = "Conversational molecular-crystal preparation with optional MatterVis panels"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["molcrys-kit>=0.7.0", "openai>=1.60", "python-dotenv>=1.0", "typer>=0.12"]
+
+[project.optional-dependencies]
+tui = ["matter-vis[tui]>=0.0.5"]
+ui = ["matter-vis[web]>=0.0.5"]
+dev = ["pytest>=8", "pytest-timeout", "pytest-xdist", "ruff==0.15.14", "build"]
+
+[project.scripts]
+mat-chat = "chat_crystal_forge.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+chat_crystal_forge = ["resources/*.cif"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+timeout = 90
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.uv.sources]
+molcrys-kit = { path = "external/molcryskit", editable = true }
+matter-vis = { path = "external/mattervis", editable = true }
