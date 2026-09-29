@@ -41,6 +41,11 @@ See [Implementation plan](docs/implementation-plan.md) and
 
 ## Planned task
 
+An owner-supplied experimental input is tracked at
+[`examples/structures/DAP-4.cif`](examples/structures/DAP-4.cif).
+See [example provenance and usage](examples/README.md). It is separate from the
+bundled synthetic water demo and the upstream historical oracle fixture.
+
 Prepare experimental molecular-crystal CIFs with disorder and missing hydrogens.
 The terminal and browser interfaces will share an agentic preparation workflow,
 use explicit user decisions for ambiguous cases, and deliver processed CIF files

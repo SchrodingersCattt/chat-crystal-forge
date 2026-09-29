@@ -1,0 +1,3 @@
+# Preserve supplied scientific data, including original CRLF and padded records.
+# Byte-identity tests, not source-code whitespace cleanup, protect these inputs.
+/examples/structures/*.cif -text -whitespace
