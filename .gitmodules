@@ -1,0 +1,8 @@
+[submodule "external/molcryskit"]
+	path = external/molcryskit
+	url = https://github.com/SchrodingersCattt/MolCrysKit.git
+	branch = main
+[submodule "external/mattervis"]
+	path = external/mattervis
+	url = https://github.com/SchrodingersCattt/MatterVis.git
+	branch = main
