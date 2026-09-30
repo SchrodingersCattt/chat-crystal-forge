@@ -9,7 +9,7 @@ description = "Conversational molecular-crystal preparation with optional Matter
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = ["molcrys-kit>=0.7.0", "openai>=1.60", "python-dotenv>=1.0", "typer>=0.12"]
+dependencies = ["molcrys-kit>=0.6.2.dev17", "openai>=1.60", "python-dotenv>=1.0", "typer>=0.12"]
 
 [project.optional-dependencies]
 tui = ["matter-vis[tui]>=0.0.5"]
