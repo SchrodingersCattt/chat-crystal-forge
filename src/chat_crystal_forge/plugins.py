@@ -54,25 +54,37 @@ class ForgeChatExtension(Extension):
 
         return html.Section(
             [
-                html.H2("CrystalForge", style={"margin": "0 0 8px", "color": "#1E3A5F"}),
-                html.P("Read-only inspection preview", style={"margin": "0 0 8px"}),
-                html.P(
-                    "Use /inspect to run MCK checks, /list for input IDs, or ask a question "
-                    "with a configured model. Checks target registered input copies, not live "
-                    "viewer edits. Repairs are not enabled yet.",
-                    style={"fontSize": "12px", "color": "#374151"},
-                ),
-                html.Div(id="forge-chat-inputs", style={"fontSize": "12px"}),
+                html.Header([
+                    html.H2("Chat", id="forge-chat-heading",
+                            style={"margin": "0", "fontSize": "20px", "color": "#1E3A5F"}),
+                    html.Span("Inspection only", style={"fontSize": "11px", "color": "#0F615B",
+                              "background": "#E5F2EF", "borderRadius": "4px", "padding": "3px 6px"}),
+                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between"}),
+                html.Details([
+                    html.Summary("How to use", style={"cursor": "pointer", "color": "#526579"}),
+                    html.P("Use /inspect for MCK checks and /list for input IDs. Natural-language "
+                           "chat needs a configured model. Checks target registered copies, not "
+                           "subsequent native viewer edits; repairs are not enabled yet."),
+                ], style={"fontSize": "12px"}),
+                html.Div("Model setup needed" if self.service.settings.configuration_error()
+                         else "Model configured", id="forge-chat-model-status",
+                         style={"fontSize": "12px", "color": "#526579"}),
+                html.Div(id="forge-chat-inputs", style={"fontSize": "12px", "color": "#526579"}),
                 html.Div(
                     id="forge-chat-transcript",
                     role="log",
-                    style={"flex": "1", "overflowY": "auto", "minHeight": "100px"},
+                    style={"flex": "1", "overflowY": "auto", "minHeight": "100px",
+                           "paddingRight": "3px"},
                 ),
                 html.Div(id="forge-chat-status", role="status", style={"fontSize": "12px"}),
                 html.Div(id="forge-chat-error", role="alert", style={"color": "#B91C3C"}),
+                html.Label("Message", htmlFor="forge-chat-message",
+                           style={"fontSize": "12px", "color": "#526579"}),
                 dcc.Textarea(
                     id="forge-chat-message", placeholder="Ask about registered structures…",
-                    style={"width": "100%", "minHeight": "76px", "fontFamily": "Arial, sans-serif"},
+                    style={"width": "100%", "minHeight": "80px", "fontFamily": "Arial, sans-serif",
+                           "fontSize": "14px", "boxSizing": "border-box", "padding": "10px",
+                           "border": "1px solid #CBD3DC", "borderRadius": "6px", "resize": "vertical"},
                 ),
                 html.Button(
                     "Send", id="forge-chat-send", n_clicks=0,
@@ -82,10 +94,11 @@ class ForgeChatExtension(Extension):
                 dcc.Store(id="forge-chat-render-key", data=""),
                 dcc.Interval(id="forge-chat-poll", interval=300),
             ],
-            # Reserve the native host's floating server-log strip at the bottom.
-            style={"height": "100%", "boxSizing": "border-box", "padding": "16px 16px 64px",
+                 # The native host now contains its diagnostics inside the viewer.
+                 style={"height": "100%", "boxSizing": "border-box", "padding": "20px 16px",
                    "display": "flex", "flexDirection": "column", "gap": "10px",
-                   "fontFamily": "Arial, sans-serif", "background": "#F3F4F6", "color": "#374151"},
+                     "fontFamily": "Arial, sans-serif", "fontSize": "14px",
+                     "background": "#F7F9FB", "color": "#374151"},
         )
 
     def register_web(self, app, context):
@@ -121,19 +134,8 @@ class ForgeChatExtension(Extension):
             ])
             if render_key == previous_key:
                 return (no_update,) * 5
-            cards = []
-            for message in snapshot["messages"][-50:]:
-                body = tool_summary(message["content"]) if message["role"] == "tool" else message["content"]
-                contents = [html.Strong(message["role"].capitalize()),
-                            html.Pre(body, style={"whiteSpace": "pre-wrap", "fontFamily": "Consolas, monospace",
-                                                  "fontSize": "12px", "overflowWrap": "anywhere"})]
-                if message["role"] == "tool":
-                    contents.append(html.Details([html.Summary("Full tool record"),
-                                                  html.Pre(message["content"], style={"whiteSpace": "pre-wrap", "fontSize": "11px"})]))
-                cards.append(html.Div(contents, style={"padding": "10px", "marginBottom": "8px",
-                                                       "background": "white", "border": "1px solid #D1D5DB",
-                                                       "borderRadius": "6px"}))
-            status = "Working…" if snapshot["busy"] else snapshot["status"]
+            cards = [_web_message(message) for message in snapshot["messages"][-50:]]
+            status = "Working…" if snapshot["busy"] else snapshot["status"].capitalize()
             inputs = [html.Div(f"{item['name']} · {item['id'][:8]}") for item in snapshot["structures"]]
             return cards, status, snapshot["busy"], inputs, render_key
 
@@ -153,7 +155,7 @@ class ForgeChatExtension(Extension):
             """
 
             def compose(self):
-                yield Static("CrystalForge · inspection preview\n/inspect · /list · /help", id="forge-chat-title")
+                yield Static("Chat · inspection only\n/inspect · /list · /help", id="forge-chat-title")
                 yield RichLog(id="forge-chat-log", wrap=True, markup=False, highlight=False)
                 yield Static("Ready", id="forge-chat-status")
                 yield Input(placeholder="Ask or /inspect", id="forge-chat-input")
@@ -175,20 +177,29 @@ class ForgeChatExtension(Extension):
     def on_tui_mount(self, app, context):
         from rich.text import Text
         from textual.widgets import Input, RichLog, Static
+        from textual.css.query import NoMatches
 
         def refresh():
             snapshot = self.service.snapshot()
-            log = app.query_one("#forge-chat-log", RichLog)
+            try:
+                log = app.query_one("#forge-chat-log", RichLog)
+                status = app.query_one("#forge-chat-status", Static)
+                input_widget = app.query_one("#forge-chat-input", Input)
+            except NoMatches:
+                # A timer tick can race with Textual unmounting the optional
+                # panel. The viewer is already shutting down, so drop this
+                # tick and let ``on_tui_unmount`` stop the timer.
+                return
             for message in snapshot["messages"]:
                 if message["id"] in self._message_ids:
                     continue
                 self._message_ids.add(message["id"])
                 body = tool_summary(message["content"]) if message["role"] == "tool" else message["content"]
                 log.write(Text(f"{message['role'].upper()}\n{body}\n"))
-            app.query_one("#forge-chat-status", Static).update(
+            status.update(
                 "Working…" if snapshot["busy"] else snapshot["status"]
             )
-            app.query_one("#forge-chat-input", Input).disabled = snapshot["busy"]
+            input_widget.disabled = snapshot["busy"]
 
         refresh()
         self._timer = app.set_interval(0.3, refresh)
@@ -200,3 +211,50 @@ class ForgeChatExtension(Extension):
 
     def close(self):
         self.service.close()
+
+
+def _web_message(message):
+    """Present native inspection fields without turning ordinary chat into logs."""
+    from dash import html
+
+    role, content = message["role"], message["content"]
+    report = None
+    if role == "tool":
+        try:
+            payload = json.loads(content[content.index("{"):])
+            report = payload.get("report") if isinstance(payload, dict) else None
+        except (ValueError, TypeError):
+            pass
+    contents = [html.Div("You" if role == "user" else "Inspection" if isinstance(report, dict)
+                         else "Tool" if role == "tool" else "Assistant",
+                         style={"fontSize": "12px", "fontWeight": "bold", "color": "#526579",
+                                "marginBottom": "7px"})]
+    if isinstance(report, dict):
+        colors = {"passed": "#0F615B", "failed": "#B91C3C", "blocked": "#875C16", "error": "#B91C3C"}
+        rows = []
+        for check in report.get("checks", []):
+            state = check.get("status", "unknown")
+            rows.append(html.Tr([
+                html.Td(check["name"].replace("_", " ").capitalize(), style={"padding": "5px 0"}),
+                html.Td(state.capitalize(), style={"textAlign": "right", "fontWeight": "bold",
+                                                   "color": colors.get(state, "#526579")}),
+            ]))
+        contents.extend([
+            html.Table(html.Tbody(rows), style={"width": "100%", "fontSize": "12px",
+                                               "borderCollapse": "collapse"}),
+            html.Div("Registered input · read-only", style={"fontSize": "11px", "color": "#526579",
+                                                               "marginTop": "8px"}),
+        ])
+    else:
+        contents.append(html.Div(tool_summary(content) if role == "tool" else content,
+                                 style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
+                                        "fontSize": "14px", "lineHeight": "1.5"}))
+    if role == "tool":
+        contents.append(html.Details([
+            html.Summary("Details & raw result", style={"cursor": "pointer", "color": "#526579"}),
+            html.Pre(content, style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
+                                     "fontFamily": "Consolas, monospace", "fontSize": "11px"}),
+        ], style={"fontSize": "12px", "marginTop": "8px"}))
+    return html.Article(contents, style={"padding": "12px", "marginBottom": "10px",
+                                         "background": "#EEF3F8" if role == "user" else "white",
+                                         "border": "1px solid #E0E6ED", "borderRadius": "8px"})
