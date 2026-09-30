@@ -5,8 +5,11 @@ MCK/MatterVis reuse, and the same core task journey in both first-release fronte
 MIT licensing and `mat-chat tui` / `mat-chat ui` are confirmed. Concrete repair scope,
 delivery and acceptance are now defined in [Structure preparation](structure-preparation.md):
 disorder and missing hydrogens, CIF plus records, and existing MCK sanity criteria
-with explicit handling of incomplete execution and ambiguity. Runtime installation
-and implementation details remain open. No runtime is implemented yet.
+with explicit handling of incomplete execution and ambiguity. The user approved
+proceeding with the complete plan by “Start implementation” on 2026-09-29. Only
+the first read-only slice is active; no complete runtime or verification milestone
+is certified here. See [Implementation plan](implementation-plan.md) and the
+draft [Spec](../devpost/spec.md).
 
 ## Task and user
 
@@ -37,16 +40,21 @@ a browser, desktop session, display server or a browser service being started.
 | Model adapter | Send requests to the configured OpenAI-compatible endpoint and decode tool calls |
 | Structure tools | Adapt verified MCK operations; return structured results and errors |
 | Completion checker | Enforce the task policy and validate actual output artifacts |
-| View adapters | Present the same structure revision through MatterVis terminal or web views |
-| TUI / UI | Collect intent, show progress, accept decisions and expose outputs |
+| Forge extension | Mount optional chat in actual native MatterVis applications |
+| MatterVis TUI / UI | Own native viewer state and controls; host shared Forge outcomes |
 
 Prefer existing public interfaces over copied internals. Do not build another
-agent framework or reimplement MCK chemistry to connect these pieces. The exact
-task storage and frontend assembly are technical-plan decisions, not settled here.
+agent framework or reimplement MCK chemistry to connect these pieces. The accepted
+plan uses later SQLite persistence and actual Dash/Textual apps with optional Forge
+Chat, not rewritten viewers. Slice 1 uses one background thread for read-only calls;
+later mutating/heavy jobs use isolated processes. The minimal host patch is under
+validation, not published. See [Plugin protocol](plugin-protocol.md); richer
+versioned commands/events are future design, not current APIs.
 
 MCK and MatterVis are checked out as pinned Git submodules under `external/`.
-Keep workflow and view adapters in this repository rather than modifying the
-upstream checkout to hide integration changes. See [Upstream dependencies](upstream.md)
+Keep Forge workflow/plugins here. Generic host/native-view bugs belong in MatterVis
+and chemistry bugs in MCK, with regression tests and reachable upstream commits
+before parent pin updates, not hidden workarounds or sleeps. See [Upstream dependencies](upstream.md)
 for checkout, installation boundaries and upgrade policy.
 
 ## Execution loop
@@ -109,8 +117,9 @@ stability or suitability for every downstream calculation.
 Source inspection on 2026-09-29 used MCK revision
 `a271cb7eaaf333f7a1e9bfcd4ba89383de609592` and MatterVis revision
 `a85cf2ab0771624afef70263069492c3a5914ecb`. These revisions are now recorded as
-submodule gitlinks. The source is available locally; Python installation and
-runtime integration have not been performed. Gitlinks, not this historical
+submodule gitlinks. That initial source inspection did not verify installation or
+runtime integration; current first-slice evidence must be recorded separately.
+Gitlinks, not this historical
 inspection note, are authoritative for the current source versions.
 
 - MCK's `molcrys_kit/analysis/sanity_check.py` exposes `sanity_check`,
@@ -128,8 +137,9 @@ inspection note, are authoritative for the current source versions.
   element sets, not exact atom counts. Keep those meanings visible; do not claim
   complete protonation, exact stoichiometry or energetic validation from a pass.
 - MatterVis web uses Dash/Plotly. `mat_viewer/app/factory.py:create_app` assembles
-  a full application; it is not a standalone React component library. Prefer its
-  documented scene/figure interfaces when building the new layout.
+  a full application; it is not a standalone React component library. Reuse the
+  actual application and native backend through the optional extension host,
+  rather than rebuilding a viewer from scene/figure interfaces.
 - MatterVis `TerminalViewController` and `TerminalSession` share the canonical
   terminal loader and renderer. The interactive TUI uses Textual. Controllers
   expose observation, camera, selection and focus operations; they do not supply
@@ -142,6 +152,13 @@ References: [MCK source](https://github.com/SchrodingersCattt/MolCrysKit),
 [MatterVis source](https://github.com/SchrodingersCattt/MatterVis).
 
 ## Required verification when implementation starts
+
+First-slice verification remains pending here: after installation, planned
+`python -B -m pytest tests`, both native frontend trials, unchanged inputs,
+endpoint errors and plugin cleanup. No repairs or `finish` tool in this slice.
+MatterVis owns view state; Forge owns task state. Source atoms are distinct from
+displayed copies. Before future repairs, native scientific edits must invalidate
+affected evidence; camera/selection changes are not scientific edits.
 
 Use fixtures with known problems and record expected outcomes. Test:
 

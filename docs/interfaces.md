@@ -3,7 +3,9 @@
 Status: design draft. Both first-release frontends, the same core task journey,
 `mat-chat tui` / `mat-chat ui`, the left-structure/right-chat layout, palette families
 and Arial/Consolas typography are confirmed. Exact colors and secondary interactions
-remain proposals pending review. The application is not implemented yet.
+remain proposals pending review. The approved plan reuses actual native MatterVis
+UI/TUI through optional Forge Chat. Only the first read-only slice is active;
+completed-app verification is not asserted here.
 
 ## Naming and command surface
 
@@ -17,7 +19,8 @@ remain proposals pending review. The application is not implemented yet.
 | Browser interface | `mat-chat ui` |
 
 The user selected the symmetric `tui` / `ui` pair. Do not add `start-ui` aliases
-without a separate request. These commands are not implemented. Package and
+without a separate request. These are planned launch commands; successful
+installation/startup must be verified by main. Package and
 executable availability has not been checked for publication.
 
 TUI starts in the current terminal. UI starts a local browser service, bound to
@@ -29,8 +32,9 @@ Do not require a browser for terminal use or assume a graphical desktop exists.
 
 Both frontends must complete the same core journey in the first release: chat,
 processing, inspection of check results, decisions on exceptions and export.
-The left-structure/right-chat layout is confirmed. The detailed interactions below
-are proposals for review, not a fully approved implementation checklist.
+The left-structure/right-chat layout and full plan are approved for implementation.
+Secondary interactions below remain design guidance. Progress is recorded in the
+draft [Checklist](../devpost/checklist.md), not implied by approval.
 
 - The left workspace shows the selected structure, batch navigation and validation
   findings. The right panel shows the conversation, execution progress and requests
@@ -50,8 +54,9 @@ The first repair scenarios are disorder and missing hydrogens; see
 
 ## Browser UI
 
-Adapt MatterVis's scene/figure and relevant UI capabilities rather than rebuilding
-its renderer. Keep the main workspace in two panels: structure on the left,
+Reuse MatterVis's actual Dash app, native backend, controls and renderer. Mount
+optional Forge Chat through the [Plugin protocol](plugin-protocol.md), not a
+replacement viewer built from scene APIs. Keep two panels: structure on the left,
 conversation on the right. Resizing is proposed. Batch navigation and check results may
 use compact sections within the left workspace; their exact placement is not set.
 
@@ -79,8 +84,9 @@ Chinese and other text. Do not bundle proprietary font files without permission.
 
 ## Terminal UI
 
-Reuse MatterVis terminal controllers/rendering and Textual capabilities as verified
-against the selected dependency version. Show structure on the left and chat on
+Reuse the actual MatterVis `CrystalTUI` Textual app and native controls with the
+optional Forge extension, verified against the selected dependency version.
+Do not create a competing viewer/backend. Show structure on the left and chat on
 the right when the terminal is wide enough. A keyboard-switchable view is proposed
 for narrower terminals, without losing conversation, task state or decisions.
 
@@ -97,3 +103,14 @@ while preserving readability under the terminal's background and theme.
 Both the terminal and browser show structured tool outcomes, not fabricated
 assistant progress or private model reasoning. API credentials never appear in
 either interface.
+
+## First-slice interaction boundary
+
+`/load`, `/list`, `/inspect`, `/help` are direct local commands; natural language
+requires the configured endpoint. Both apps display shared service snapshots with
+messages, structures, busy/error and status fields. One background thread performs
+real read-only inspection; no repairs, export certification or `finish` tool yet.
+MatterVis retains camera/selection/display state. Distinguish source atoms from
+displayed copies; before future repairs invalidate scientific evidence on manual
+native edits. The minimal host patch is under validation, not published; richer
+versioned events are planned rather than implemented.

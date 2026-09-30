@@ -1,8 +1,8 @@
 # Model configuration
 
-Status: proposed configuration contract. The user requested `.env.example`, an
-ignored local `.env`, and OpenAI-compatible key/base-URL/model settings. The runtime
-loader and model adapter have not been implemented.
+Status: implemented for the read-only chat/inspection preview. Configuration and
+tool-calling unit tests exist; no live provider has been verified without locally
+supplied credentials/model. Later preparation tools remain planned.
 
 ## Environment variables
 

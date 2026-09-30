@@ -1,0 +1,60 @@
+# Inspection-preview validation
+
+The first slice is available locally for early feedback, not release-ready.
+
+## Verified
+
+- Parent suite: 44 tests, including actual MCK inspection on synthetic CIFs,
+  config/persistence/worker lifecycle, mocked model tool calling, native Web/TUI
+  integration, and a subprocess forbidding browser imports on terminal loading.
+- Parent Ruff check and wheel build succeeded.
+- MatterVis extension/lifecycle, callback-layout, BFDH failure-output and module
+  organization subset: 39 tests passed. Its full source Ruff check passed.
+- Browser verification: native MatterVis view plus Forge panel, real `/inspect`
+  submission and six MCK results displayed. No live model request was made.
+
+## Blocking full regression
+
+Run MatterVis tests from `external/mattervis`; several fixtures use repository-relative
+paths. The last full correctly rooted run returned 1172 passed, 48 skipped and one
+failure in `tests/perf/test_dap_o4_oracle.py::test_dap4_pipeline_oracle` (before the
+last callback/BFDH regressions were added).
+
+That test requires MCK `f2188c1`, while the development source pin is `a271cb7`.
+An isolated experiment using the recorded historical MCK/MatterVis source pair
+also failed to reproduce the archived report under the available transitive
+dependency environment. The original full environment and exact difference need
+investigation. No oracle values, skip rules or assertions were changed.
+
+The CI runs the full upstream gate without exclusions. Do not publish a new parent
+pin until the upstream commit is reachable and its required validation is resolved.
+
+## Cartesian aspect correction
+
+A live browser inspection reproduced flattened water meshes: final range spans
+were approximately `(2.02, 1.76, 0.84)`, but automatic Plotly aspect produced
+per-unit scales `(0.87189, 0.81889, 0.46900)`. The Z scale was about 54% of X.
+Mesh vertex extents and canvas dimensions did not explain this anisotropy.
+
+MatterVis now derives manual aspect from final padded ranges in all main display
+modes, and uses the same normalization for the compass. It preserves mesh vertices,
+axis endpoints and explicit camera settings. Browser verification after server
+restart, restoring the existing camera, measured equal scales of approximately
+`(0.49505, 0.49505, 0.49505)` without a frontend-only aspect override.
+
+The new regression file initially failed 11 cases. After the fix, the focused
+aspect/camera suite passed 36 tests (10 existing fixture-dependent skips); the
+parent suite passed all 44 tests. Full MatterVis regression: 1204 passed, 48 skipped,
+with only the same dependency-locked DAP-4 oracle failure. No oracle expectation
+or assertion was changed, and publishing remains blocked on that earlier issue.
+
+## Remaining work
+
+- Live endpoint/model compatibility; local `.env` configuration is needed.
+- User feedback in both interfaces; no hands-on approval has been assumed.
+- Live viewer edits/uploads synchronized with Forge input revisions.
+- Hydrogen/disorder operations, all-pass completion/export and batch recovery.
+- Fresh Linux execution and hosted CI runs.
+
+Inspection targets registered original copies, not arbitrary live viewer state.
+Synthetic test inputs are not experimental or benchmark-performance evidence.
