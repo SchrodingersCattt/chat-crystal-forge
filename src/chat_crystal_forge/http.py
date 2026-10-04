@@ -32,7 +32,11 @@ class ForgeSessionManager:
     def get(self, identifier: str) -> ForgeService:
         service = self.services.get(identifier)
         if service is None:
-            raise KeyError(identifier)
+            workspace = self.root / identifier
+            if not workspace.is_dir() or not (workspace / "session.sqlite3").is_file():
+                raise KeyError(identifier)
+            service = ForgeService(workspace, self.settings)
+            self.services[identifier] = service
         return service
 
     def close(self, identifier: str) -> None:
