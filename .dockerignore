@@ -1,0 +1,13 @@
+.git
+.pytest_cache
+.crystalforge
+external/*/.git
+external/*/.pytest_cache
+external/*/tests
+external/*/docs
+__pycache__
+*.py[cod]
+.env
+.env.*
+!.env.example
+

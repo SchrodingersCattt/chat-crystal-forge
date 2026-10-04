@@ -1,0 +1,20 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    FORGE_ROOT=/var/lib/crystalforge
+
+WORKDIR /app
+COPY external/molcryskit /app/external/molcryskit
+COPY external/mattervis /app/external/mattervis
+COPY pyproject.toml README.md LICENSE /app/
+COPY src /app/src
+RUN python -m pip install --no-cache-dir --upgrade pip \
+    && python -m pip install --no-cache-dir -e /app/external/molcryskit \
+    && python -m pip install --no-cache-dir -e "/app/external/mattervis[web]" \
+    && python -m pip install --no-cache-dir -e ".[api]"
+
+VOLUME ["/var/lib/crystalforge"]
+EXPOSE 8051
+CMD ["mat-chat", "serve", "--host", "0.0.0.0", "--port", "8051"]
+

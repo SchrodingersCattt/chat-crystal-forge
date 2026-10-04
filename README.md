@@ -21,6 +21,9 @@ an older PyPI release alone does not provide it.
 
 - `mat-chat ui` starts a loopback-only Web app at `http://127.0.0.1:8050`.
 - `mat-chat tui` starts the native terminal viewer with the chat panel.
+- `mat-chat serve` starts CrystalForge's standalone session API at port 8051;
+  it owns its own SQLite session directories and does not depend on the
+  separate `mattervis-saas` repository.
 - Supply CIF paths after either subcommand to inspect your own inputs.
 - Without paths, a bundled **synthetic water geometry**, not experimental data,
   is registered and shown.
