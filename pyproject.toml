@@ -14,6 +14,7 @@ dependencies = ["molcrys-kit>=0.6.2.dev17", "openai>=1.60", "python-dotenv>=1.0"
 [project.optional-dependencies]
 tui = ["matter-vis[tui]>=0.0.5"]
 ui = ["matter-vis[web]>=0.0.5"]
+api = ["flask>=3.0"]
 dev = ["pytest>=8", "pytest-timeout", "pytest-xdist", "ruff==0.15.14", "build"]
 
 [project.scripts]

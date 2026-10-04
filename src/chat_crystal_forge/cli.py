@@ -84,3 +84,22 @@ def tui(
         if viewer is not None:
             viewer.close_extensions()
         service.close()
+
+
+@app.command()
+def serve(
+    host: Annotated[str, typer.Option(help="Bind address.")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(min=1, max=65535)] = 8051,
+    root: Annotated[Path | None, typer.Option(help="Session root directory.")] = None,
+    env_file: Annotated[Path | None, typer.Option(help="Explicit local environment file.")] = None,
+):
+    """Run CrystalForge's independent session API; no MatterVis SaaS dependency."""
+    try:
+        from .http import create_app
+    except ImportError as exc:
+        raise typer.BadParameter("Install the optional API extra with: pip install '.[api]'") from exc
+    app_instance = create_app(root=root, settings=load_settings(env_file))
+    try:
+        app_instance.run(host=host, port=port, debug=False, use_reloader=False)
+    finally:
+        app_instance.extensions["forge_sessions"].close_all()
