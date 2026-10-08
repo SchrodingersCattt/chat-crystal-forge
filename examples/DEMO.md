@@ -35,8 +35,11 @@ shows the reload report, including all six checks and the export path.
 
 ## Rejection and recovery paths
 
-Before exporting, `/finish` returns `missing_export`. A malformed export or a
-changed revision returns a blocked result and leaves the evidence in SQLite.
+Before exporting, `/finish` returns `missing_export`. Exporting the
+hydrogenated crystal while disorder remains returns `disorder_unresolved`.
+`/finish` passes only after that export no longer has disorder and the six
+reloaded checks pass. A malformed export or a changed revision returns a
+blocked result and leaves the evidence in SQLite.
 Stop the process during a preparation job, then reopen the same directory:
 
 ```bash

@@ -14,7 +14,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .config import Settings, load_settings
-from .mck import CHECKS, _valid_reference, inspect_file
+from .mck import CHECKS, _valid_reference, file_has_disorder, inspect_file
 from .preparation import run_isolated
 
 
@@ -517,6 +517,19 @@ class ForgeService:
                 reasons.append({"structure_id": structure["id"], "reason": "missing_export"})
             elif not all(by_revision[revision_id]["checks"].get("passed") is True for revision_id in expected):
                 reasons.append({"structure_id": structure["id"], "reason": "checks_not_passed"})
+            else:
+                unresolved = []
+                for revision_id in expected:
+                    path = Path(by_revision[revision_id]["path"])
+                    try:
+                        disordered = file_has_disorder(path)
+                    except Exception:
+                        disordered = True
+                    if disordered:
+                        unresolved.append(revision_id)
+                if unresolved:
+                    reasons.append({"structure_id": structure["id"], "reason": "disorder_unresolved",
+                                    "revision_ids": unresolved})
         if reasons:
             self._status = "blocked"
             with self._connect() as db:

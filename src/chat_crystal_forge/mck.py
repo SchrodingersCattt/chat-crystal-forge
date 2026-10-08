@@ -24,6 +24,13 @@ def _crystal_from_file(path: Path):
     return read_mol_crystal(str(path), resolve_disorder=False)
 
 
+def file_has_disorder(path: Path) -> bool:
+    """Return whether a CIF still contains unresolved disorder sites."""
+    from molcrys_kit.io.cif import scan_cif_disorder
+
+    return bool(scan_cif_disorder(str(path)).has_disorder)
+
+
 def add_hydrogens_file(path: Path, output: Path, *, reference_formula: str | None = None) -> dict:
     """Complete hydrogen placement and write one CIF.
 

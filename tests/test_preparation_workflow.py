@@ -22,6 +22,14 @@ def test_ambiguous_hydrogen_decision_and_finish_gate(tmp_path):
         exported = service.export_structure(identifier, "C6 H18 Cl3 N3 O12")
         assert exported["checks"]["reloaded"] is True
         assert exported["checks"]["passed"] is True
+        blocked = service.finish()
+        assert blocked["status"] == "blocked"
+        assert any(item["reason"] == "disorder_unresolved" for item in blocked["reasons"])
+        resolved = service.resolve_disorder(identifier, "optimal", 1)
+        assert resolved["status"] == "done"
+        delivered = service.export_structure(identifier, "C6 H18 Cl3 N3 O12")
+        assert delivered["checks"]["reloaded"] is True
+        assert delivered["checks"]["passed"] is True
         assert service.finish()["status"] == "passed"
     finally:
         service.close()
