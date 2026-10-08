@@ -192,6 +192,20 @@ def test_busy_submit_is_rejected_and_close_discards_late_inspection(service, cif
         release.set()
 
 
+def test_passed_status_survives_reopen(tmp_path, cif):
+    workspace = tmp_path / "passed"
+    instance = ForgeService(workspace, Settings())
+    instance.add_input(cif)
+    instance._status = "passed"
+    instance.close()
+    restored = ForgeService(workspace, Settings())
+    try:
+        assert restored.snapshot()["status"] == "passed"
+        assert restored.snapshot()["structures"][0]["name"]
+    finally:
+        restored.close()
+
+
 def test_interrupted_state_restores_without_replay(tmp_path, cif):
     workspace = tmp_path / "interrupted"
     instance = ForgeService(workspace, Settings())

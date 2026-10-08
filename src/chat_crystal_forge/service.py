@@ -134,7 +134,13 @@ class ForgeService:
             if running_jobs:
                 db.execute("UPDATE jobs SET status='interrupted', updated_at=? WHERE status IN ('queued','running')", (time.time(),))
                 db.execute("UPDATE structures SET status='interrupted' WHERE id IN (SELECT structure_id FROM jobs WHERE status='interrupted')")
-            self._status = "interrupted" if (previous and previous[0] == "working") or running_jobs else "ready"
+            previous_status = previous[0] if previous else "ready"
+            if previous_status == "working" or running_jobs:
+                self._status = "interrupted"
+            elif previous_status in {"passed", "blocked", "interrupted", "error", "idle"}:
+                self._status = previous_status
+            else:
+                self._status = "ready"
             self._persist_status(db)
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="crystalforge")
         self._future = None
@@ -255,7 +261,8 @@ class ForgeService:
             was_busy = self._busy
             self._closed = True
             self._busy = False
-            self._status = "closed"
+            if self._status not in {"passed", "blocked", "interrupted", "error"}:
+                self._status = "closed"
             with self._connect() as db:
                 self._persist_status(db)
             self._executor.shutdown(wait=False, cancel_futures=True)
