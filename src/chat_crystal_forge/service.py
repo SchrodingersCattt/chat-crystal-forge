@@ -14,7 +14,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .config import Settings, load_settings
-from .mck import CHECKS, inspect_file
+from .mck import CHECKS, _valid_reference, inspect_file
 from .preparation import run_isolated
 
 
@@ -410,6 +410,14 @@ class ForgeService:
             self._mark_structure(identifier, status="awaiting_decision")
             return {"status": "awaiting_decision", "reason": "formula_reference_required",
                     "question": "Confirm an independent formula/moiety before hydrogen completion."}
+        try:
+            valid = _valid_reference(candidate)
+        except Exception:
+            valid = False
+        if not valid:
+            self._mark_structure(identifier, status="awaiting_decision")
+            return {"status": "awaiting_decision", "reason": "invalid_formula_reference",
+                    "question": "Provide a parseable independent formula/moiety before hydrogen completion."}
         with self._connect() as db:
             db.execute("INSERT INTO decisions(id,structure_id,revision_id,mode,reference_formula,payload,created_at) VALUES (?,?,?,?,?,?,?)",
                        (uuid4().hex, identifier, structure["revision_id"], "hydrogen", candidate, json.dumps({"source": "user" if reference_formula else "input"}), time.time()))
