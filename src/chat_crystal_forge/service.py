@@ -496,6 +496,9 @@ class ForgeService:
     def finish(self) -> dict:
         snapshot = self.snapshot()
         if not snapshot["structures"]:
+            self._status = "blocked"
+            with self._connect() as db:
+                self._persist_status(db)
             return {"status": "blocked", "reason": "empty_batch"}
         reasons = []
         for structure in snapshot["structures"]:

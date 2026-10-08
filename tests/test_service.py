@@ -148,7 +148,10 @@ def test_native_commands_without_model(service):
     service.submit("/inspect not-a-registered-id")
     assert "Unknown structure ID" in wait(service)["error"]
     service.submit("/finish")
-    assert "Unknown command" in wait(service)["error"]
+    finished = wait(service)
+    assert finished["error"] is None
+    assert finished["status"] == "blocked"
+    assert any("empty_batch" in item["content"] for item in finished["messages"])
 
 
 def test_missing_configuration_is_actionable_not_fake_chat(service):
