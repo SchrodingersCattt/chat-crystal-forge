@@ -92,11 +92,26 @@ disorder choice automatically to later structures.
 - [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
 - [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: Not yet performed; no test or hands-on completion recorded.
-Route and stops: Not yet selected from finished code.
-Edit outcome: Not yet offered or performed.
-Reflection: Not yet offered; no personal answer inferred.
-Activity mode: Unset pending actual activity and feedback.
+Activity and evidence: `devpost/app-map.html` is generated from the current
+implementation at commit `5d1fe90`. Its paths and symbols were checked against
+`src/chat_crystal_forge/cli.py`, `service.py`, `plugins.py`, `http.py`, and
+`tests/test_preparation_workflow.py`; the artifact is offline and has no
+credentials or external dependencies. It is a reference route, not evidence
+that a learner has completed the tour. The standalone frontend issue log is in
+[`devpost/frontend-notes.md`](frontend-notes.md).
+Route and stops: Reference route prepared — start at `cli.py:create_service`
+and `ui()`/`tui()`, follow `plugins.py` submission callbacks into
+`service.py:submit()` → `_direct()` → `_tool()`, then read `snapshot()` and the
+SQLite records. A live editor/app tour remains pending.
+Edit outcome: No optional learner edit has been performed or inferred. A safe
+candidate for the live wrap-up is a presentation-only label change in
+`plugins.py`; keep it only if the learner tries it and the relevant presentation
+check passes.
+Reflection: Not yet offered; no personal answer inferred. Ask one optional
+transfer question during the final review and keep any personal response in the
+ignored learner profile.
+Activity mode: Static reference route prepared; live app/editor activity and
+learner feedback are pending.
 
 ## Revisions
 
@@ -121,9 +136,23 @@ Activity mode: Unset pending actual activity and feedback.
   polyhedra-controls wrapper. The fix and regression tests belong to MatterVis.
   After restart, an actual browser click on Send with `/inspect` displayed all six
   MCK results for the synthetic water input. Chat padding avoids the native log
-  overlay. No live LLM was tested because endpoint/model configuration is absent.
+  overlay. This earlier review did not include a live LLM; the later synthetic
+  endpoint check is recorded below.
 - Latest parent validation: 44 tests passed, including native-host integration and
   a subprocess rejecting Dash/Flask/Plotly imports on the TUI loading path. Wheel
   build succeeded. Upstream focused tests passed (39), and both Ruff checks passed.
   The full upstream oracle failure remains a release/push blocker; these counts
   do not imply a passing full suite or completed first-slice hands-on review.
+
+- 2026-10-09 release rehearsal: a clean checkout initialized the pinned
+  submodules and installed MolCrysKit, MatterVis and the parent package from
+  the README. The current parent suite passed 54 tests and the terminal command chain was verified through the TUI's shared
+  service protocol and is recorded in `docs/validation.md`; visual learner
+  acceptance remains unchecked. The local `.env` passed configuration checks,
+  and the configured endpoint completed a natural-language inspection of the
+  bundled synthetic water input. DAP-4 stayed local for that endpoint check.
+- 2026-10-09 frontend review: browser HTTP/layout smoke and native Web/TUI
+  integration passed. The remaining discussion item is responsive behavior
+  below the roughly 756 px combined side-panel/center minimum; stale scenes
+  from a reused viewer session are documented in `docs/frontend-audit.md` and
+  `devpost/frontend-notes.md`.

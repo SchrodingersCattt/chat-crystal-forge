@@ -60,3 +60,10 @@ another provider as a fallback.
 
 When implemented, test environment precedence, blank required values, local
 endpoint behavior, tool-call capability errors, and secret-free error reporting.
+
+On 2026-10-09 the local ignored `.env` supplied all three settings and passed
+configuration validation. The configured endpoint completed a natural-language
+inspection of the bundled synthetic water CIF with real tool calls. The
+experimental DAP-4 CIF was kept local during this check; direct slash commands
+remain the reproducible path for that input until its data-sharing decision is
+explicitly confirmed.

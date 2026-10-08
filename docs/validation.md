@@ -13,14 +13,17 @@ The first slice is available locally for early feedback, not release-ready.
 - `ruff check src tests` and Python syntax compilation pass. The standalone API
   snapshot omits local filesystem paths for structures, revisions and exports.
 
-- Parent suite: 44 tests, including actual MCK inspection on synthetic CIFs,
+- Latest parent suite: 54 tests, including actual MCK inspection on synthetic CIFs,
   config/persistence/worker lifecycle, mocked model tool calling, native Web/TUI
   integration, and a subprocess forbidding browser imports on terminal loading.
 - Parent Ruff check and wheel build succeeded.
 - MatterVis extension/lifecycle, callback-layout, BFDH failure-output and module
   organization subset: 39 tests passed. Its full source Ruff check passed.
 - Browser verification: native MatterVis view plus Forge panel, real `/inspect`
-  submission and six MCK results displayed. No live model request was made.
+  submission and six MCK results displayed. The configured OpenAI-compatible
+  endpoint also completed a natural-language inspection of the bundled synthetic
+  water input with real `list_structures` and `inspect_structure` tool calls;
+  the experimental DAP-4 file was not sent to that endpoint.
 
 ## Blocking full regression
 
@@ -118,7 +121,9 @@ portability observation, not claimed fixed by the Web changes.
 
 ## Outstanding work
 
-- Live endpoint/model compatibility; local `.env` configuration is needed.
+- DAP-4 live endpoint/model compatibility remains unverified because the
+  experimental CIF stayed local; the bundled synthetic input passed a live
+  natural-language tool-call check with the configured `.env`.
 - User feedback in both interfaces; no hands-on approval has been assumed.
 - Live viewer edits/uploads synchronized with Forge input revisions.
 - Fresh Linux execution and hosted CI runs.
@@ -128,3 +133,38 @@ portability observation, not claimed fixed by the Web changes.
 
 Inspection targets registered original copies, not arbitrary live viewer state.
 Synthetic test inputs are not experimental or benchmark-performance evidence.
+
+## Clean-checkout install and terminal workflow (2026-10-09)
+
+On Windows, a fresh clone from `main` was created under `_tmp/clean-checkout-20261009`
+and initialized with the README command `git submodule update --init` (exit code
+0). Both recorded submodules were at the parent pins (`MatterVis
+e2b3f7a8977d3f9a90cef79fedac1ec85c5280a0`, `MolCrysKit
+f2188c14e245b87d99dc1d13ab72e37993d972b0`). In a new Python 3.12 virtual
+environment, the README
+command completed successfully:
+
+```text
+python -m pip install -e external/molcryskit -e "external/mattervis[all,test]" -e ".[dev]"
+```
+
+Editable imports (`chat_crystal_forge`, `molcrys_kit`, `mat_viewer`) and
+`mat-chat --help` then succeeded. The `mat-chat tui ... --session ...` host
+also started successfully. Because this Windows PTY cannot inject Textual
+keystrokes reliably, the command chain below was exercised through the same
+Forge chat `submit()` path used by the TUI and verified from SQLite after every
+turn; this is a protocol check, not a claim of visual or learner acceptance:
+`/inspect`, `/complete-h`, `/disorder`, `/export`, `/finish`.
+
+| input | observed result |
+| --- | --- |
+| `/inspect` | report recorded; source remains unresolved (`blocked` because the `?` formula is not a decision) |
+| `/complete-h <id>` | `awaiting_decision` (`formula_reference_required`) |
+| `/complete-h <id> C6 H18 Cl3 N3 O12` | `done`, isolated hydrogen revision, 176 H atoms |
+| `/disorder <id> optimal 1` | `done`, requested/returned 1, distinct 1, duplicate 0 |
+| `/export <id> C6 H18 Cl3 N3 O12` | `done`, reloaded export with all required checks passing |
+| `/finish` | `passed`, all declared inputs had independently reloaded passing exports |
+
+The original DAP-4 file was unchanged. The clean checkout and its session are
+temporary validation artifacts under ignored `_tmp/` and `.crystalforge/`
+paths; they are not part of the deliverable.

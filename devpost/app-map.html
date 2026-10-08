@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CrystalForge app map</title>
+  <style>
+    :root { color-scheme: light dark; --bg: #f7f8fb; --fg: #172033; --muted: #536078; --card: #fff; --line: #cbd3e1; --accent: #365ccf; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #111522; --fg: #edf1ff; --muted: #b1bdd5; --card: #1a2030; --line: #3c4963; --accent: #9eb3ff; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.55 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+    main { max-width: 980px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+    h1, h2 { line-height: 1.2; }
+    h1 { margin-top: 0; }
+    .muted { color: var(--muted); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.2rem; margin: 1rem 0; }
+    code, kbd { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .92em; }
+    code { overflow-wrap: anywhere; }
+    .flow { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+    .flow text { fill: var(--fg); font: 15px system-ui, sans-serif; }
+    .flow .small { font-size: 12px; fill: var(--muted); }
+    .flow .box { fill: var(--card); stroke: var(--accent); stroke-width: 2; }
+    .flow .arrow { stroke: var(--accent); stroke-width: 2; marker-end: url(#arrow); }
+    a { color: var(--accent); }
+    li { margin: .4rem 0; }
+    footer { color: var(--muted); font-size: .9rem; border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>CrystalForge app map</h1>
+  <p class="muted">An offline, source-grounded reference route for the CrystalForge preparation workflow. This map describes the code at commit <code>5d1fe90</code>; it is not a claim that every route has been exercised by a learner.</p>
+
+  <section class="card" aria-labelledby="purpose">
+    <h2 id="purpose">What the app does</h2>
+    <p>CrystalForge registers immutable CIF copies, asks MolCrysKit for inspection evidence, records explicit hydrogen and disorder decisions, reloads exports for the same checks, and lets code—not model prose—decide whether <code>/finish</code> can pass. MatterVis supplies the native viewer in the browser UI and terminal UI; one <code>ForgeService</code> supplies the workflow state to both.</p>
+  </section>
+
+  <section class="card" aria-labelledby="diagram">
+    <h2 id="diagram">One action from input to visible result</h2>
+    <svg class="flow" viewBox="0 0 940 240" role="img" aria-labelledby="flow-title flow-desc">
+      <title id="flow-title">Slash command flow</title>
+      <desc id="flow-desc">A direct command enters through the native panel, is dispatched by ForgeService, writes SQLite evidence, and appears as a chat result with updated status and report data.</desc>
+      <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path></marker></defs>
+      <rect class="box" x="20" y="65" width="185" height="90" rx="10"></rect>
+      <text x="112" y="94" text-anchor="middle">MatterVis UI / TUI</text>
+      <text class="small" x="112" y="119" text-anchor="middle">ForgeChatExtension</text>
+      <text class="small" x="112" y="139" text-anchor="middle">user enters /inspect</text>
+      <line class="arrow" x1="205" y1="110" x2="275" y2="110"></line>
+      <rect class="box" x="275" y="65" width="205" height="90" rx="10"></rect>
+      <text x="377" y="94" text-anchor="middle">ForgeService.submit()</text>
+      <text class="small" x="377" y="119" text-anchor="middle">_run → _direct → _tool</text>
+      <text class="small" x="377" y="139" text-anchor="middle">validated structure ID</text>
+      <line class="arrow" x1="480" y1="110" x2="550" y2="110"></line>
+      <rect class="box" x="550" y="25" width="170" height="70" rx="10"></rect>
+      <text x="635" y="54" text-anchor="middle">MCK adapter</text>
+      <text class="small" x="635" y="76" text-anchor="middle">inspect_file()</text>
+      <line class="arrow" x1="635" y1="95" x2="635" y2="163"></line>
+      <rect class="box" x="550" y="163" width="170" height="55" rx="10"></rect>
+      <text x="635" y="197" text-anchor="middle">SQLite snapshot</text>
+      <line class="arrow" x1="720" y1="110" x2="805" y2="110"></line>
+      <rect class="box" x="805" y="65" width="115" height="90" rx="10"></rect>
+      <text x="862" y="94" text-anchor="middle">Visible result</text>
+      <text class="small" x="862" y="119" text-anchor="middle">chat card</text>
+      <text class="small" x="862" y="139" text-anchor="middle">status / report</text>
+    </svg>
+  </section>
+
+  <section class="card" aria-labelledby="route">
+    <h2 id="route">Reference route (2–3 stops)</h2>
+    <ol>
+      <li><strong>Start the host.</strong> <code>src/chat_crystal_forge/cli.py</code> defines <code>ui()</code> and <code>tui()</code>. Both call <code>create_service()</code>, register a copied CIF, and pass the same service into MatterVis through <code>ForgeChatExtension</code>.</li>
+      <li><strong>Follow a command.</strong> In <code>src/chat_crystal_forge/plugins.py</code>, the web callback <code>submit()</code> and TUI handler <code>on_input_submitted()</code> forward text to <code>ForgeService.submit()</code>. In <code>src/chat_crystal_forge/service.py</code>, <code>_direct()</code> validates slash commands and <code>_tool()</code> calls <code>inspect_file()</code>, preparation jobs, export reloads, or <code>finish()</code>.</li>
+      <li><strong>Read the evidence.</strong> <code>ForgeService.snapshot()</code> reads messages, structures, revisions, jobs, decisions, and exports from <code>session.sqlite3</code>. The extension's <code>refresh()</code> renders those records as chat cards and status text; it does not decide scientific outcomes.</li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="change">
+    <h2 id="change">To change this, start here</h2>
+    <ul>
+      <li>Change command parsing or usage text: <code>src/chat_crystal_forge/service.py</code>, <code>_direct()</code> and <code>_direct_result()</code>.</li>
+      <li>Change preparation or completion policy: <code>src/chat_crystal_forge/service.py</code>, <code>complete_hydrogens()</code>, <code>resolve_disorder()</code>, <code>export_structure()</code>, and <code>finish()</code>; keep policy shared by both frontends.</li>
+      <li>Change panel layout or presentation: <code>src/chat_crystal_forge/plugins.py</code>, <code>build_web_panel()</code>, <code>build_tui_panel()</code>, and <code>refresh()</code>. Viewer behavior belongs in the MatterVis checkout.</li>
+      <li>Change the session HTTP surface: <code>src/chat_crystal_forge/http.py</code>, <code>create_app()</code>. API responses intentionally omit local file paths.</li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="practice">
+    <h2 id="practice">A practice to reuse</h2>
+    <p>Make the acceptance condition observable before wiring a workflow. Here, <code>tests/test_preparation_workflow.py</code> exercises ambiguous hydrogen decisions, bounded disorder output, and restart recovery, while <code>ForgeService.finish()</code> checks actual reloaded exports and hashes. On another project, write the visible pass/fail evidence and its test or storage location first; then keep UI code responsible for showing that evidence rather than inventing a success message.</p>
+  </section>
+
+  <section class="card" aria-labelledby="run">
+    <h2 id="run">Run it again</h2>
+    <p>From an activated Python 3.11+ environment with the pinned submodules installed:</p>
+    <pre><code>python -m pip install -e external/molcryskit -e "external/mattervis[all,test]" -e ".[dev]"
+mat-chat ui examples/structures/DAP-4.cif --session .crystalforge/dap4-demo
+mat-chat tui --session .crystalforge/dap4-demo
+python -B -m pytest tests
+ruff check src tests</code></pre>
+    <p>Use <a href="../examples/DEMO.md">the runnable demo</a> for the complete slash-command sequence. A live natural-language request additionally needs local <code>OPENAI_API_KEY</code>, <code>OPENAI_BASE_URL</code>, and <code>OPENAI_MODEL</code>; never put those values in this map.</p>
+  </section>
+
+  <footer>Offline artifact: no scripts, CDN, analytics, private learner notes, or credentials. Refresh this map if mapped behavior changes after commit <code>5d1fe90</code>.</footer>
+</main>
+</body>
+</html>

@@ -68,4 +68,6 @@ curl -X POST http://127.0.0.1:8051/v1/sessions
 
 Natural-language requests require local `OPENAI_API_KEY`, `OPENAI_BASE_URL` and
 `OPENAI_MODEL`. Direct slash commands work without those settings, and secrets
-never enter the browser payload or session database.
+never enter the browser payload or session database. The clean-checkout install
+and terminal command-chain record for 2026-10-09 is in
+[`docs/validation.md`](../docs/validation.md).

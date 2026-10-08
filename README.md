@@ -13,9 +13,15 @@ mocked model responses do not establish live-provider compatibility.
 
 ## Install and try the development preview
 
-Use Python 3.11+ in an activated virtual environment and initialize submodules.
-Install the source checkouts and app with
-`python -m pip install -e external/molcryskit -e "external/mattervis[all,test]" -e ".[dev]"`.
+Use Python 3.11+ in an activated virtual environment. From a clean checkout,
+initialize the recorded sources and install the editable packages:
+
+```bash
+git submodule update --init
+python -m pip install -e external/molcryskit -e "external/mattervis[all,test]" -e ".[dev]"
+```
+
+Use `git submodule update --init --recursive` if nested submodules are added.
 The MatterVis checkout must include the optional frontend extension interface;
 an older PyPI release alone does not provide it.
 
@@ -47,7 +53,10 @@ policy invalidates earlier export evidence and requires a new `/load`.
 Run `python -B -m pytest tests` and `ruff check src tests` for the parent package.
 Run upstream tests from `external/mattervis`, not the parent working directory.
 See [the runnable demo](examples/DEMO.md), [Implementation plan](docs/implementation-plan.md)
-and [Build checklist](devpost/checklist.md) for validation details.
+and [Build checklist](devpost/checklist.md) for validation details. The offline
+[app map](devpost/app-map.html) traces one command from the native panel through
+the shared service to persisted evidence; [frontend review notes](devpost/frontend-notes.md)
+record the remaining viewport and interaction checks.
 
 ## Planned task
 
