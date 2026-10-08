@@ -33,7 +33,8 @@ an older PyPI release alone does not provide it.
 - `/disorder <id> <optimal|random|enumerate> <count> [seed] [coupled]` generates
   a bounded delivery and records requested, returned, distinct and duplicate counts.
 - `/export <id> [formula]` writes a CIF, reloads it and runs all six checks; `/finish`
-  is allowed only when every declared input has a passing non-stale export.
+  is allowed only when every declared input has a passing non-stale export and that
+  file no longer contains disorder.
 - `/list` shows registered IDs, `/load <path>` registers another CIF, `/help` lists
   direct commands. Natural-language messages use the configured model.
 - `--session <directory>` restores a saved session; new launches otherwise create
