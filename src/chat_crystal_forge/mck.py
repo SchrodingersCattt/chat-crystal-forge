@@ -1,8 +1,9 @@
-"""Read-only adapter for the pinned MolCrysKit six-check inspection policy."""
+"""MolCrysKit adapter used by inspection and isolated preparation jobs."""
 
 from __future__ import annotations
 
 import importlib
+import json
 import math
 import warnings
 from dataclasses import asdict
@@ -14,6 +15,65 @@ CHECKS = (
     "hard_clash", "intermolecular_clash", "isolated_atoms",
     "hydrogen_presence", "formula_consistency", "bond_distances",
 )
+
+
+def _crystal_from_file(path: Path):
+    """Read a crystal without silently resolving disorder."""
+    from molcrys_kit.io.cif import read_mol_crystal
+
+    return read_mol_crystal(str(path), resolve_disorder=False)
+
+
+def file_has_disorder(path: Path) -> bool:
+    """Return whether a CIF still contains unresolved disorder sites."""
+    from molcrys_kit.io.cif import scan_cif_disorder
+
+    return bool(scan_cif_disorder(str(path)).has_disorder)
+
+
+def add_hydrogens_file(path: Path, output: Path, *, reference_formula: str | None = None) -> dict:
+    """Complete hydrogen placement and write one CIF.
+
+    This function is deliberately small and side-effect limited so it can be
+    called from the preparation subprocess.  The caller is responsible for
+    deciding whether the formula/moiety is scientifically unambiguous.
+    """
+    from molcrys_kit.io.output import write_cif
+    from molcrys_kit.operations.hydrogen_completion import add_hydrogens
+
+    crystal = _crystal_from_file(Path(path))
+    if reference_formula:
+        crystal.formula_moiety = reference_formula
+    completed = add_hydrogens(crystal, use_formula_moiety=bool(reference_formula or getattr(crystal, "formula_moiety", None)))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    write_cif(completed, str(output))
+    atoms = completed.to_ase()
+    return {"output": str(output), "hydrogen_count": atoms.get_chemical_symbols().count("H")}
+
+
+def disorder_files(path: Path, output_dir: Path, *, method: str, count: int,
+                   random_seed: int | None = None, coupled: bool = False) -> dict:
+    """Generate bounded ordered replicas and persist their source indices."""
+    from molcrys_kit.analysis.disorder.process import generate_ordered_replicas_from_disordered_sites
+    from molcrys_kit.io.output import write_cif
+
+    replicas = generate_ordered_replicas_from_disordered_sites(
+        filepath=str(path), generate_count=count, method=method,
+        random_seed=random_seed, return_kept_indices=True, coupled=coupled,
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    items = []
+    for index, item in enumerate(replicas):
+        crystal, kept = item if isinstance(item, tuple) else (item, None)
+        target = output_dir / f"replica-{index:03d}.cif"
+        write_cif(crystal, str(target))
+        items.append({"path": str(target), "source_indices": _json_safe(kept)})
+    signatures = [json.dumps(item.get("source_indices"), sort_keys=True) for item in items]
+    return {
+        "method": method, "requested_count": count, "returned_count": len(items),
+        "distinct_source_indices": len(set(signatures)), "duplicate_count": len(signatures) - len(set(signatures)),
+        "items": items, "random_seed": random_seed, "coupled": coupled,
+    }
 
 
 def _json_safe(value: Any) -> Any:

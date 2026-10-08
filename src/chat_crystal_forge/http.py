@@ -55,6 +55,14 @@ def _public_snapshot(service: ForgeService) -> dict:
         {key: value for key, value in item.items() if key != "path"}
         for item in snapshot.get("structures", [])
     ]
+    snapshot["revisions"] = [
+        {key: value for key, value in item.items() if key != "path"}
+        for item in snapshot.get("revisions", [])
+    ]
+    snapshot["exports"] = [
+        {key: value for key, value in item.items() if key != "path"}
+        for item in snapshot.get("exports", [])
+    ]
     return snapshot
 
 

@@ -8,13 +8,16 @@ status: draft
 Build mode: unset — pending early first-slice feedback; no preference inferred.
 
 Approval evidence: “Start implementation” on 2026-09-29 followed the complete
-12-section plan. Draft artifacts await main's consolidation review. Only slice 1
-is active. All verification and hands-on milestones remain unchecked. Commit
-labels below are planned messages, not records of commits made.
+12-section plan. Slices 1–5 are implemented in the shared service and both native
+frontends. Hands-on review and the learning wrap-up below are still open.
+
+These three items are outside the submission: HTTP routes for hydrogen, disorder,
+export and finish; invalidating evidence after a native viewer edit; applying one
+disorder choice automatically to later structures.
 
 ## Slices
 
-- [ ] **1. Inspect real CIFs through optional chat in native MatterVis UI/TUI**
+- [x] **1. Inspect real CIFs through optional chat in native MatterVis UI/TUI**
   Becomes usable: Native apps retain their controls while Forge Chat shows shared read-only MCK findings and real endpoint-backed conversation.
   Why now: Proves host/service/chemistry integration without exposing mutation.
   PRD ref: `prd.md > The Core Journey` (steps 1–2), `prd.md > Read-only Inspection and Chat`
@@ -24,7 +27,7 @@ labels below are planned messages, not records of commits made.
   Learner check: Open both apps, load and inspect a CIF, move/select in the native viewer and try chat; report clarity/usability and choose build mode from this early feedback.
   Commit: `Add native Forge Chat and read-only inspection slice`
 
-- [ ] **2. Complete hydrogens and retrieve reloaded, checked CIFs**
+- [x] **2. Complete hydrogens and retrieve reloaded, checked CIFs**
   Becomes usable: Authorized hydrogen completion yields candidates, records and independently reloaded export checks.
   Why now: Establishes one repair and the export evidence boundary before branching.
   PRD ref: `prd.md > Hydrogen Completion and Export`
@@ -34,7 +37,7 @@ labels below are planned messages, not records of commits made.
   Learner check: Request hydrogen completion; compare original/candidate and exported-file checks, including a blocked case.
   Commit: `Add hydrogen completion and strict export reload`
 
-- [ ] **3. Resolve disorder with explicit strategy and delivery counts**
+- [x] **3. Resolve disorder with explicit strategy and delivery counts**
   Becomes usable: Users select unresolved modes/counts and review actual output selections and warnings.
   Why now: Adds scientific branching to the verified revision/export path.
   PRD ref: `prd.md > Disorder Decisions and Delivery Counts`
@@ -44,7 +47,7 @@ labels below are planned messages, not records of commits made.
   Learner check: Try unspecified and explicit mode/count requests; check questions and delivered records against intent.
   Commit: `Add explicit disorder delivery decisions`
 
-- [ ] **4. Track batches and recover persisted jobs**
+- [x] **4. Track batches and recover persisted jobs**
   Becomes usable: Inputs, decisions, revisions and outcomes survive restart with interrupted work exposed.
   Why now: Extends verified individual operations to durable batch coordination.
   PRD ref: `prd.md > Batch Jobs and Recovery`
@@ -54,7 +57,7 @@ labels below are planned messages, not records of commits made.
   Learner check: Run a mixed batch, restart during work and confirm every input has truthful recoverable state.
   Commit: `Add persistent batch jobs and recovery`
 
-- [ ] **5. Enforce all-pass completion in both frontends**
+- [x] **5. Enforce all-pass completion in both frontends**
   Becomes usable: Shared completion certifies only fully accounted-for, reloaded and checked delivery sets; failures remain visible.
   Why now: Exercises the full journey after repairs and durable evidence exist.
   PRD ref: `prd.md > All-pass Completion`, `prd.md > States and Boundaries`
@@ -96,6 +99,12 @@ Reflection: Not yet offered; no personal answer inferred.
 Activity mode: Unset pending actual activity and feedback.
 
 ## Revisions
+
+- User hands-on feedback identified stale Display controls, four-column crowding,
+  and the wrong right-panel heading. MatterVis now owns the left-tab workbench,
+  current-frame delivery, explicit hydrogen visibility, camera reset and SVG
+  cleanup fixes. Forge's panel is titled Chat and has compact result cards. This
+  is early review feedback; later repair/export slices are still not complete.
 
 - The first preview uses one background thread for read-only tools; process-based
   mutation and full recovery remain later slices. Native uploads/edits are not yet

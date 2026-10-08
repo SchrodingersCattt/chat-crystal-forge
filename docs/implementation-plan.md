@@ -10,10 +10,10 @@ The template-based [scope](../devpost/scope.md), [PRD](../devpost/prd.md),
 saved as `status: draft`; main must review their faithful consolidation before
 changing status. This is not a request for a second user sign-off.
 
-Only slice 1 is actively being built. No slice, test run, hands-on checkpoint or
-final review is certified complete here. The generic MatterVis host patch is under
-validation and is not yet published. Build mode is unset pending early first-slice
-feedback. No learner experience or personal profile is inferred.
+Slices 1–5 are implemented in the current branch: native host integration,
+explicit preparation decisions, isolated jobs, export reload evidence and the
+shared completion gate. Live endpoint compatibility, hosted CI and hands-on
+final review remain unverified.
 
 ## 2. Product and proof-of-concept boundary
 
@@ -21,8 +21,9 @@ Wet-lab researchers load experimental molecular-crystal CIFs, inspect findings,
 authorize supported preparation, and receive processed CIFs plus operation/check
 records. The distinctive feature is the shared inspect–repair–validate workflow,
 not a replacement chemistry engine or generic chat window. Both native frontends
-must eventually support the complete journey. The current slice is read-only:
-no repairs, export certification or `finish` tool.
+must support the complete journey. Preparation revisions, export certification
+and the code-owned `finish` gate are implemented; registered inputs remain
+immutable.
 
 ## 3. Existing frontends, optional Forge Chat
 
@@ -61,10 +62,8 @@ the prompt. No invented global time, cost or experiment budget is imposed.
 
 ## 6. Execution and ownership
 
-Slice 1 uses one background **thread** for read-only model/MCK work, with serialized
-service updates and detached snapshots. UI callbacks must remain responsive and
-must not mutate shared scientific objects from the worker. Later mutating/heavy
-jobs use isolated processes, revision-scoped inputs and stale-result rejection.
+Read-only model/MCK work uses one background **thread**, while mutating/heavy jobs
+use isolated processes, revision-scoped inputs and stale-result rejection.
 Native view state belongs to MatterVis; task/scientific state belongs to Forge.
 Source atom IDs are distinct from displayed symmetry/periodic copies. Camera and
 selection changes are not scientific edits. Manual edits must invalidate affected
@@ -90,13 +89,13 @@ element-set agreement, not exact stoichiometry. Requested operations need their
 own evidence. Later export must independently reload each actual CIF and apply
 the same recorded policy. Only a nonempty batch with every input's agreed delivery
 set accounted for and all required checks actually passed can finish. A changed
-revision or policy invalidates earlier evidence. Do not implement `finish` in slice 1.
+revision or policy invalidates earlier evidence.
 
 ## 9. Persistence and recovery
 
-SQLite local state is the accepted later persistence choice, with revisioned files
-for original inputs and artifacts. Slice 1 need not claim durable jobs or recovery.
-Later records cover sessions, turns, inputs, revisions, jobs, decisions, checks,
+SQLite local state is the accepted persistence choice, with revisioned files for
+original inputs and artifacts. Records cover sessions, turns, inputs, revisions,
+jobs, decisions, checks,
 events and exports. Preserve original inputs; restart must expose interrupted jobs
 and resume deliberately, never fabricate successful completion or duplicate a
 mutating submission. Repeated no-progress attempts become visible blocked states.

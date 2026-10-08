@@ -36,6 +36,18 @@ def tool_summary(content: str) -> str:
         return "Registered structures:\n" + "\n".join(
             f"{item['name']} · {item['id']}" for item in result["structures"]
         )
+    if result.get("status") == "awaiting_decision":
+        return "Awaiting decision: " + str(result.get("question") or result.get("reason"))
+    if result.get("operation") == "disorder":
+        return (f"Disorder delivery ({result.get('method')}): requested {result.get('requested_count')}, "
+                f"returned {result.get('returned_count')}, distinct {result.get('distinct_source_indices')}, "
+                f"duplicates {result.get('duplicate_count')}. Optimal is not energy optimization.")
+    if result.get("operation") == "complete_hydrogens":
+        return f"Hydrogen preparation finished with {result.get('hydrogen_count')} H atoms; export/reload is still required."
+    if "checks" in result and "export_id" in result:
+        return "Export reload: " + ("passed" if result["checks"].get("passed") else "blocked")
+    if result.get("status") in {"passed", "blocked"} and ("reasons" in result or "message" in result):
+        return str(result.get("message") or result.get("reasons"))
     return content
 
 
@@ -57,14 +69,14 @@ class ForgeChatExtension(Extension):
                 html.Header([
                     html.H2("Chat", id="forge-chat-heading",
                             style={"margin": "0", "fontSize": "20px", "color": "#1E3A5F"}),
-                    html.Span("Inspection only", style={"fontSize": "11px", "color": "#0F615B",
+                    html.Span("Ready", id="forge-chat-badge", style={"fontSize": "11px", "color": "#0F615B",
                               "background": "#E5F2EF", "borderRadius": "4px", "padding": "3px 6px"}),
                 ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between"}),
                 html.Details([
                     html.Summary("How to use", style={"cursor": "pointer", "color": "#526579"}),
                     html.P("Use /inspect for MCK checks and /list for input IDs. Natural-language "
                            "chat needs a configured model. Checks target registered copies, not "
-                           "subsequent native viewer edits; repairs are not enabled yet."),
+                           "subsequent native viewer edits; preparation requires explicit scientific decisions."),
                 ], style={"fontSize": "12px"}),
                 html.Div("Model setup needed" if self.service.settings.configuration_error()
                          else "Model configured", id="forge-chat-model-status",
@@ -155,7 +167,7 @@ class ForgeChatExtension(Extension):
             """
 
             def compose(self):
-                yield Static("Chat · inspection only\n/inspect · /list · /help", id="forge-chat-title")
+                yield Static("Chat · inspect and prepare\n/inspect · /complete-h · /disorder · /export · /finish", id="forge-chat-title")
                 yield RichLog(id="forge-chat-log", wrap=True, markup=False, highlight=False)
                 yield Static("Ready", id="forge-chat-status")
                 yield Input(placeholder="Ask or /inspect", id="forge-chat-input")

@@ -2,10 +2,10 @@
 
 ## Status
 
-The first implementation is a **read-only inspection preview**. It adds optional
-Forge Chat panels to the actual MatterVis Web UI and TUI, with a shared background
-service, SQLite session records and real MCK inspection. Hydrogen completion,
-disorder generation, full batch recovery and completion/export are not enabled yet.
+The current implementation provides a shared inspection and preparation workflow.
+Forge Chat panels run inside the actual MatterVis Web UI and TUI; SQLite records
+revisions, decisions, isolated jobs and independently reloaded exports. Completion
+is code-gated and never inferred from model prose.
 
 Natural-language tool calling is implemented but needs your configured endpoint
 and model. Direct inspection commands work without an API key. Unit tests using
@@ -28,19 +28,26 @@ an older PyPI release alone does not provide it.
 - Without paths, a bundled **synthetic water geometry**, not experimental data,
   is registered and shown.
 - `/inspect` runs MCK checks on all registered copies; `/inspect <id>` selects one.
+- `/complete-h <id> [formula]` performs isolated hydrogen completion after an
+  explicit formula decision when the input is ambiguous.
+- `/disorder <id> <optimal|random|enumerate> <count> [seed] [coupled]` generates
+  a bounded delivery and records requested, returned, distinct and duplicate counts.
+- `/export <id> [formula]` writes a CIF, reloads it and runs all six checks; `/finish`
+  is allowed only when every declared input has a passing non-stale export and that
+  file no longer contains disorder.
 - `/list` shows registered IDs, `/load <path>` registers another CIF, `/help` lists
   direct commands. Natural-language messages use the configured model.
 - `--session <directory>` restores a saved session; new launches otherwise create
   separate directories under `.crystalforge/`. This directory is ignored by Git.
 
-Inspection targets immutable registered copies. Native viewer uploads/edits and
-new `/load` inputs are not yet synchronized into a shared live selection/revision
-protocol; do not treat a report as validation of a subsequently edited view.
+Inspection and preparation target immutable registered copies. Native viewer
+camera/selection state is presentation-only; a changed registered revision or
+policy invalidates earlier export evidence and requires a new `/load`.
 
 Run `python -B -m pytest tests` and `ruff check src tests` for the parent package.
 Run upstream tests from `external/mattervis`, not the parent working directory.
-See [Implementation plan](docs/implementation-plan.md) and
-[Build checklist](devpost/checklist.md) for incomplete work and validation blockers.
+See [the runnable demo](examples/DEMO.md), [Implementation plan](docs/implementation-plan.md)
+and [Build checklist](devpost/checklist.md) for validation details.
 
 ## Planned task
 

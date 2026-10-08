@@ -1,5 +1,26 @@
 # Interfaces and visual design
 
+## Workbench layout update
+
+The native Web host now has three main regions when the plugin is enabled:
+one left tool sidebar, the central MatterVis viewer, and a right panel titled
+**Chat**. Display, Analysis and Operations are horizontal tabs in the left sidebar;
+their controls remain mounted while inactive contents are hidden. Scene navigation
+and upload stay common to the sidebar. There is no separate analysis column or
+vertical analysis/operation tab strip. Without a plugin, only the sidebar and
+viewer remain. The server-log overlay is contained within the viewer.
+
+Chat uses ordinary prose typography for conversation, compact inspection tables,
+collapsible raw records/help, and an explicit model-configuration indicator.
+The project name is not repeated as the panel heading. The terminal heading is
+also Chat. This changes presentation, not the read-only inspection scope.
+
+Display controls now publish complete current-revision frames rather than patching
+an unverified older geometry base. Explicit hydrogen visibility overrides presets;
+Axes off removes the previous SVG compass. Cell boundary is unavailable outside
+Unit cell scope, with a visible explanation; an already selected saved value can
+still be unchecked. No display toggle changes the underlying source atoms.
+
 Status: design draft. Both first-release frontends, the same core task journey,
 `mat-chat tui` / `mat-chat ui`, the left-structure/right-chat layout, palette families
 and Arial/Consolas typography are confirmed. Exact colors and secondary interactions
