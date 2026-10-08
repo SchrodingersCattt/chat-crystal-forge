@@ -1,9 +1,9 @@
 # Experimental CIF preparation
 
 Status: the owner confirmed the first task, deliverables and acceptance scope on
-2026-09-29. The integration below is a design contract, not an implemented or
-runtime-tested workflow. Source observations refer to the initial pinned MCK
-revision `a271cb7`.
+2026-09-29. The service implements the integration below with isolated preparation
+jobs and export/reload evidence; live endpoint and hosted CI validation remain
+external checks. Source observations refer to the pinned MCK revision `f2188c1`.
 
 ## First task
 
@@ -143,7 +143,8 @@ the batch from being presented as wholly completed.
 
 ## Source references and verification
 
-The contracts above were inspected in the pinned source, not executed:
+The contracts above are exercised by the parent workflow tests and the DAP-4
+manual path. The following upstream locations remain the source of truth:
 
 - `molcrys_kit/io/cif.py`: `scan_cif_disorder`, `read_mol_crystal`, `DisorderInfo`.
 - `molcrys_kit/analysis/disorder/process.py` and `solver.py`: modes and generation.
@@ -151,7 +152,7 @@ The contracts above were inspected in the pinned source, not executed:
 - `molcrys_kit/analysis/sanity_check.py` and `constants/config.py`: criteria/defaults.
 - `molcrys_kit/io/output.py`: CIF export and serialized metadata.
 
-Integration tests must cover H-free and partial-H inputs, explicit disorder
+The parent integration suite covers H-free and partial-H inputs, explicit disorder
 strategies, replica shortages/duplicates, skipped checks, metadata preservation,
 ambiguous chemistry and export/reload. Inspecting upstream tests is not a substitute
-for running this application's integration tests once implemented.
+for running this application's integration tests.
