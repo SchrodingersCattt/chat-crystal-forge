@@ -1,9 +1,10 @@
 # Standalone CrystalForge API
 
 CrystalForge's competition service is independent of `mattervis-saas`. It
-owns session storage, model configuration and the read-only Forge workflow.
-MatterVis is used only through the pinned upstream package/submodule selected by
-this repository.
+owns session storage, model configuration and the inspection/preparation Forge
+workflow. MatterVis is used only through the pinned upstream package/submodule
+selected by this repository. The rendering service lives in another private
+repository and this competition project does not call `mattervis-saas`.
 
 Install the optional API surface:
 
@@ -20,6 +21,8 @@ Endpoints:
 - `POST /v1/sessions/{id}/inputs` with multipart `file`
 - `POST /v1/sessions/{id}/messages` with `{ "text": "..." }`
 - `POST /v1/sessions/{id}/inspect`
+- `POST /v1/sessions/{id}/messages` also accepts `/complete-h`, `/disorder`,
+  `/export` and `/finish`; all operations are recorded in the shared snapshot.
 - `DELETE /v1/sessions/{id}`
 
 Set `FORGE_API_KEY` to require `X-API-Key`. Set `FORGE_ROOT` to a writable

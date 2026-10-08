@@ -97,6 +97,12 @@ Activity mode: Unset pending actual activity and feedback.
 
 ## Revisions
 
+- User hands-on feedback identified stale Display controls, four-column crowding,
+  and the wrong right-panel heading. MatterVis now owns the left-tab workbench,
+  current-frame delivery, explicit hydrogen visibility, camera reset and SVG
+  cleanup fixes. Forge's panel is titled Chat and has compact result cards. This
+  is early review feedback; later repair/export slices are still not complete.
+
 - The first preview uses one background thread for read-only tools; process-based
   mutation and full recovery remain later slices. Native uploads/edits are not yet
   synchronized with Forge's registered input copies and are explicitly labeled.

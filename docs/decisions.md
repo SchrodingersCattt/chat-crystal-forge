@@ -78,10 +78,20 @@ and explicitly selected public visibility after being informed that source and
 Git history will be readable. Review files/history for secrets before publishing;
 exclude `.env`, personal profiles and unrelated local tooling directories.
 
+## UI feedback addressed locally
+
+The user reported ineffective Display checkboxes, four competing columns, and
+asked that the right panel be called Chat. The implementation consolidates the
+native Analysis/Operations tools into left-sidebar tabs, keeps the existing viewer,
+and uses Chat as the plugin heading. The checkbox investigation found separate
+revision-delivery, explicit-false precedence, SVG cleanup and camera-reset issues;
+these were fixed in MatterVis, not hidden by Forge retries or delays. See
+[validation](validation.md) for evidence and the remaining unrelated release gate.
+
 ## Still needed for implementation and evaluation
 
-- A representative input set and permission to redistribute any public demo data.
-  A proposed 100-input demonstration is not a completed benchmark.
+- Additional representative inputs for the full preparation workflow. The supplied
+  DAP-4 example is tracked; the proposed 100-input demo is not a completed benchmark.
 - Actual endpoint/model configuration, supplied locally rather than in chat.
 - Main's review of consolidated draft artifacts and actual runtime integration
   evidence; approval does not establish passing tests.
@@ -99,10 +109,10 @@ requirements, not evidence that checks have already run.
 
 ## Current status
 
-Only slice 1 (native optional plugin + shared read-only inspection/chat) is actively
-being built. All checklist boxes remain false pending real evidence. The generic
-MatterVis host patch is under validation, not published. No complete app, upstream
-bug fix, live endpoint pass or final user review is asserted here.
+The native host patch is published on the MatterVis feature branch and the parent
+now contains the preparation workflow: isolated mutation jobs, explicit decisions,
+export reload evidence and a shared finish gate. Live endpoint compatibility,
+hosted CI and final hands-on review remain outstanding.
 
 ### D7. Full-plan approval and frontend ownership
 
@@ -118,8 +128,8 @@ masking races or blanket ban on relevant upstream changes.
 
 **Accepted plan:** Python >=3.11, Typer, official OpenAI-compatible SDK, SQLite local
 state, pinned MCK and existing MatterVis apps. Reuse the existing `.venv` as chosen
-by the user. First slice uses one background thread for read-only calls; later
-mutating/heavy jobs use isolated processes. No repairs or `finish` in slice 1.
+by the user. Read-only calls use the service worker; mutating/heavy jobs use
+isolated processes. Preparation and `finish` are now implemented.
 Tutorial concepts: https://learn.shareai.run/zh/ s01/03/07/08/11/12/13, not copied
 shell-agent code. See [Spec](../devpost/spec.md) for service boundaries.
 
@@ -127,7 +137,7 @@ shell-agent code. See [Spec](../devpost/spec.md) for service boundaries.
 
 Scope, PRD, spec and checklist are initially `status: draft` for main's review of
 the consolidation. Approval evidence is recorded separately; do not demand a
-second user sign-off or confuse approval with completion. Build mode is unset
-pending early slice-1 feedback. No personal profile, experience, learning activity
-or hands-on milestone is inferred. Six ordered slices and outstanding reviews are
+second user sign-off or confuse approval with completion. Live model compatibility
+and hands-on milestones are still unverified. No personal profile, experience or
+learning activity is inferred. Six ordered slices and outstanding reviews are
 tracked in the [Checklist](../devpost/checklist.md).

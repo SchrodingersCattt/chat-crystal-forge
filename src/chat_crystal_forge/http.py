@@ -55,6 +55,14 @@ def _public_snapshot(service: ForgeService) -> dict:
         {key: value for key, value in item.items() if key != "path"}
         for item in snapshot.get("structures", [])
     ]
+    snapshot["revisions"] = [
+        {key: value for key, value in item.items() if key != "path"}
+        for item in snapshot.get("revisions", [])
+    ]
+    snapshot["exports"] = [
+        {key: value for key, value in item.items() if key != "path"}
+        for item in snapshot.get("exports", [])
+    ]
     return snapshot
 
 
@@ -78,6 +86,19 @@ def create_app(root: str | Path | None = None, settings: Settings | None = None)
     @app.get("/healthz")
     def healthz():
         return jsonify({"ok": True, "service": "crystalforge", "sessions": len(manager.services)})
+
+    @app.get("/")
+    def index():
+        return (
+            "<!doctype html><meta charset='utf-8'>"
+            "<title>CrystalForge</title>"
+            "<h1>CrystalForge</h1>"
+            "<p>Standalone session API is running.</p>"
+            "<ul><li><a href='/healthz'>Health</a></li>"
+            "<li>POST /v1/sessions</li>"
+            "<li>POST /v1/sessions/{id}/inputs</li>"
+            "<li>POST /v1/sessions/{id}/messages</li></ul>"
+        )
 
     @app.post("/v1/sessions")
     def create_session():

@@ -1,8 +1,17 @@
-# Inspection-preview validation
+# CrystalForge validation
 
 The first slice is available locally for early feedback, not release-ready.
 
 ## Verified
+
+- Preparation workflow: DAP-4 ambiguity stops at `awaiting_decision`; confirmed
+  formula enables isolated hydrogen completion, bounded disorder generation,
+  independent six-check export reload and a code-owned passing `finish` gate.
+- Workflow tests cover formula decisions, subprocess jobs, requested/returned
+  disorder counts, export evidence and restart interruption. The original DAP-4
+  input remains byte-for-byte unchanged.
+- `ruff check src tests` and Python syntax compilation pass. The standalone API
+  snapshot omits local filesystem paths for structures, revisions and exports.
 
 - Parent suite: 44 tests, including actual MCK inspection on synthetic CIFs,
   config/persistence/worker lifecycle, mocked model tool calling, native Web/TUI
@@ -48,13 +57,74 @@ parent suite passed all 44 tests. Full MatterVis regression: 1204 passed, 48 ski
 with only the same dependency-locked DAP-4 oracle failure. No oracle expectation
 or assertion was changed, and publishing remains blocked on that earlier issue.
 
-## Remaining work
+## Workbench and Display controls
+
+### Follow-up: apparent resets and stalled delivery
+
+The resumed browser investigation reproduced a separate delivery delay: a water
+frame built in 31 ms was not returned by the HTTP fallback until roughly 20 s
+later. The fallback interval was 30 s, and WebSocket startup abandoned connection
+when Dash had not loaded Plotly yet. Startup now waits for Plotly; HTTP fallback
+polls at 500 ms. A Node regression executes the actual startup with Plotly initially
+absent, then checks connection and subscription.
+
+The graph no longer sits inside a Dash Loading wrapper: background requests retain
+the last valid frame rather than hide the viewer. Polling does not change the
+browser title. Full-frame delivery is serialized and deduplicated across Dash and
+WebSocket, preserving the live camera for unchanged scene/view revisions.
+
+Live verification after restart: Axes off completed in about 778 ms including
+automation overhead, removed the SVG arrows, and emitted one afterplot event.
+The rotated camera eye remained (1.6, 0.4, 0.8), within floating-point precision.
+Hydrogens off followed by Labels and Axes on converged to revision 4, one oxygen
+mesh (70 vertices), one label and no bond geometry, retaining that camera.
+Axes still delivers a complete frame; metadata-only overlay delivery remains
+separate work, not a completed optimization.
+
+Follow-up full MatterVis run: 1272 passed, 48 skipped, two failures. One was the
+known MCK oracle version lock; the other was a layout test still expecting the
+removed Loading wrapper. Its replacement asserts the graph directly fills the
+center panel, and the seven targeted layout/startup tests then passed. The whole
+suite has not been rerun after that assertion update. Forge: 49 passed; source
+Ruff and both repository whitespace checks passed.
+
+### Earlier synchronization checks
+
+User feedback reproduced a real state/figure mismatch: `display_options` reached
+the backend and advanced render revision to 18, while the browser stayed at 15.
+The fast trace patch did not carry a verified geometry base or matching metadata.
+Visual-control changes now request current full frames through the existing async
+worker and caches. WebSocket delivery no longer advances beyond unsent events;
+worker errors clear pending state and emit an observable error.
+
+Further real-geometry/browser checks found and corrected two independent issues:
+an explicit `show_hydrogen=False` was overridden by a true preset, and removing
+compass metadata left the old SVG arrows on screen. Camera reset also now survives
+scene-state reconstruction instead of reviving a creation-time camera.
+
+Browser checks verified H removal produces one oxygen mesh and no bond meshes,
+labels appear, disorder-only filters the ordered water view empty, and cell boundary
+adds/removes its trace in Unit cell scope. Analysis and Operations open inside the
+left sidebar; Chat is the only right-side extension region. Final SVG/availability
+verification follows the last server restart.
+
+Full upstream regression after these changes: 1265 passed, 48 skipped, with the
+same historical dependency-locked oracle failure. A timer-granularity test was
+made deterministic with an injected monotonic clock and an exact duration check,
+not skipped or converted to an expected failure. Forge's current suite passed 49
+tests using Python stream capture; one earlier run encountered a non-reproduced
+Textual/Windows output-handle failure during teardown and is retained as a
+portability observation, not claimed fixed by the Web changes.
+
+## Outstanding work
 
 - Live endpoint/model compatibility; local `.env` configuration is needed.
 - User feedback in both interfaces; no hands-on approval has been assumed.
 - Live viewer edits/uploads synchronized with Forge input revisions.
-- Hydrogen/disorder operations, all-pass completion/export and batch recovery.
 - Fresh Linux execution and hosted CI runs.
+- MatterVis focused tests could not create their default Windows `tmp_path` in
+  this sandbox; this is an environment permission failure, not an assertion
+  result. The full upstream oracle remains separately dependency-locked.
 
 Inspection targets registered original copies, not arbitrary live viewer state.
 Synthetic test inputs are not experimental or benchmark-performance evidence.
