@@ -41,6 +41,11 @@ whose structure is no longer in the live catalog, persists the repaired store,
 and then registers the current CIF. A stale `viewer.json` therefore no longer
 causes an unknown-structure scene to survive into the visible workbench.
 
+Scene close is also explicit-event-only: the periodic control-state poll no
+longer writes the tab DOM. A close response cannot be followed by an older poll
+response that recreates the removed tab. The focused MatterVis dispatcher test
+and a live click through the native panel cover this ordering.
+
 ## Terminal host
 
 The native TUI integration test passes with the local environment:
@@ -61,6 +66,8 @@ before the test starts while creating `asyncio`'s socket pair.
 - Analysis and Operations share the left workbench; Chat is the right-side
   extension region. The center scene keeps a readable desktop minimum and
   uses the compact overlay mode on smaller windows.
+- Scene tabs, close buttons and rename controls sit in one grouped card; the
+  close action updates the backend and visible tab row together.
 - Chat keeps its own padding and compact result cards, so the native server-log
   overlay does not hide conversation content.
 - MatterVis supplies the right-click inputs and polyhedra-controls wrapper
