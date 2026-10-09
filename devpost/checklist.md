@@ -146,7 +146,7 @@ learner feedback are pending.
 
 - 2026-10-09 release rehearsal: a clean checkout initialized the pinned
   submodules and installed MolCrysKit, MatterVis and the parent package from
-  the README. The current parent suite passed 54 tests and the terminal command chain was verified through the TUI's shared
+  the README. The current parent suite passed 55 tests and the terminal command chain was verified through the TUI's shared
   service protocol and is recorded in `docs/validation.md`; visual learner
   acceptance remains unchecked. The local `.env` passed configuration checks,
   and the configured endpoint completed a natural-language inspection of the

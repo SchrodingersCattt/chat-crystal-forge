@@ -13,9 +13,10 @@ The first slice is available locally for early feedback, not release-ready.
 - `ruff check src tests` and Python syntax compilation pass. The standalone API
   snapshot omits local filesystem paths for structures, revisions and exports.
 
-- Latest parent suite: 54 tests, including actual MCK inspection on synthetic CIFs,
+- Latest parent suite: 55 tests, including actual MCK inspection on synthetic CIFs,
   config/persistence/worker lifecycle, mocked model tool calling, native Web/TUI
-  integration, and a subprocess forbidding browser imports on terminal loading.
+  integration, stale-scene recovery, compact-layout asset delivery, Chat
+  presentation, and a subprocess forbidding browser imports on terminal loading.
 - Parent Ruff check and wheel build succeeded.
 - MatterVis extension/lifecycle, callback-layout, BFDH failure-output and module
   organization subset: 39 tests passed. Its full source Ruff check passed.
