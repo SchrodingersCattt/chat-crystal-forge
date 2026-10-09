@@ -93,7 +93,7 @@ disorder choice automatically to later structures.
 - [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
 Activity and evidence: `devpost/app-map.html` is generated from the current
-implementation at commit `5d1fe90`. Its paths and symbols were checked against
+implementation at commit `ab4685c`. Its paths and symbols were checked against
 `src/chat_crystal_forge/cli.py`, `service.py`, `plugins.py`, `http.py`, and
 `tests/test_preparation_workflow.py`; the artifact is offline and has no
 credentials or external dependencies. It is a reference route, not evidence
@@ -151,8 +151,8 @@ learner feedback are pending.
   acceptance remains unchecked. The local `.env` passed configuration checks,
   and the configured endpoint completed a natural-language inspection of the
   bundled synthetic water input. DAP-4 stayed local for that endpoint check.
-- 2026-10-09 frontend review: browser HTTP/layout smoke and native Web/TUI
-  integration passed. The remaining discussion item is responsive behavior
-  below the roughly 756 px combined side-panel/center minimum; stale scenes
-  from a reused viewer session are documented in `docs/frontend-audit.md` and
-  `devpost/frontend-notes.md`.
+- 2026-10-09 frontend follow-up: browser HTTP/layout smoke and native Web/TUI
+  integration passed. MatterVis now prunes stale scenes during startup and
+  serves a compact overlay mode below the roughly 756 px desktop breakpoint;
+  parent regressions cover both paths. Learner hands-on acceptance remains
+  separate and is not inferred from these automated checks.

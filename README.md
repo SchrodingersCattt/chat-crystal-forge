@@ -56,7 +56,7 @@ See [the runnable demo](examples/DEMO.md), [Implementation plan](docs/implementa
 and [Build checklist](devpost/checklist.md) for validation details. The offline
 [app map](devpost/app-map.html) traces one command from the native panel through
 the shared service to persisted evidence; [frontend review notes](devpost/frontend-notes.md)
-record the remaining viewport and interaction checks.
+record the audited layout, recovery and interaction fixes.
 
 ## Planned task
 
