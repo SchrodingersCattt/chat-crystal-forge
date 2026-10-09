@@ -68,16 +68,21 @@ class ForgeChatExtension(Extension):
             [
                 html.Header([
                     html.H2("Chat", id="forge-chat-heading",
-                            style={"margin": "0", "fontSize": "20px", "color": "#1E3A5F"}),
-                    html.Span("Ready", id="forge-chat-badge", style={"fontSize": "11px", "color": "#0F615B",
-                              "background": "#E5F2EF", "borderRadius": "4px", "padding": "3px 6px"}),
-                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between"}),
+                            style={"margin": "0", "fontSize": "18px", "fontWeight": "750",
+                                   "letterSpacing": "-0.02em", "color": "#172B4D"}),
+                    html.Span("Ready", id="forge-chat-badge", style={"fontSize": "11px", "fontWeight": "700",
+                              "color": "#146C63", "background": "#E7F4F1", "borderRadius": "999px",
+                              "padding": "4px 8px"}),
+                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between",
+                          "paddingBottom": "12px", "borderBottom": "1px solid #D9E2EC"}),
                 html.Details([
-                    html.Summary("How to use", style={"cursor": "pointer", "color": "#526579"}),
+                    html.Summary("How to use", style={"cursor": "pointer", "color": "#344054",
+                                                      "fontWeight": "650"}),
                     html.P("Use /inspect for MCK checks and /list for input IDs. Natural-language "
                            "chat needs a configured model. Checks target registered copies, not "
                            "subsequent native viewer edits; preparation requires explicit scientific decisions."),
-                ], style={"fontSize": "12px"}),
+                ], style={"fontSize": "12px", "color": "#667085", "background": "#FFFFFF",
+                          "border": "1px solid #E4E7EC", "borderRadius": "8px", "padding": "8px 10px"}),
                 html.Div("Model setup needed" if self.service.settings.configuration_error()
                          else "Model configured", id="forge-chat-model-status",
                          style={"fontSize": "12px", "color": "#526579"}),
@@ -94,23 +99,26 @@ class ForgeChatExtension(Extension):
                            style={"fontSize": "12px", "color": "#526579"}),
                 dcc.Textarea(
                     id="forge-chat-message", placeholder="Ask about registered structures…",
-                    style={"width": "100%", "minHeight": "80px", "fontFamily": "Arial, sans-serif",
-                           "fontSize": "14px", "boxSizing": "border-box", "padding": "10px",
-                           "border": "1px solid #CBD3DC", "borderRadius": "6px", "resize": "vertical"},
+                    style={"width": "100%", "minHeight": "84px", "fontFamily": "inherit",
+                           "fontSize": "13px", "boxSizing": "border-box", "padding": "11px",
+                           "border": "1px solid #C7D2DF", "borderRadius": "8px", "resize": "vertical",
+                           "background": "#FFFFFF", "color": "#172B4D"},
                 ),
                 html.Button(
                     "Send", id="forge-chat-send", n_clicks=0,
-                    style={"background": "#1E3A5F", "color": "white", "padding": "10px",
-                           "border": "none", "borderRadius": "5px", "cursor": "pointer"},
+                    style={"background": "#0F766E", "color": "white", "padding": "10px 12px",
+                           "border": "none", "borderRadius": "8px", "cursor": "pointer",
+                           "fontWeight": "700"},
                 ),
                 dcc.Store(id="forge-chat-render-key", data=""),
                 dcc.Interval(id="forge-chat-poll", interval=300),
             ],
                  # The native host now contains its diagnostics inside the viewer.
-                 style={"height": "100%", "boxSizing": "border-box", "padding": "20px 16px",
+                 className="forge-chat-panel",
+                 style={"height": "100%", "boxSizing": "border-box", "padding": "18px 16px 20px",
                    "display": "flex", "flexDirection": "column", "gap": "10px",
-                     "fontFamily": "Arial, sans-serif", "fontSize": "14px",
-                     "background": "#F7F9FB", "color": "#374151"},
+                     "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif", "fontSize": "13px",
+                     "background": "#F8FAFC", "color": "#344054"},
         )
 
     def register_web(self, app, context):
@@ -267,6 +275,7 @@ def _web_message(message):
             html.Pre(content, style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
                                      "fontFamily": "Consolas, monospace", "fontSize": "11px"}),
         ], style={"fontSize": "12px", "marginTop": "8px"}))
-    return html.Article(contents, style={"padding": "12px", "marginBottom": "10px",
-                                         "background": "#EEF3F8" if role == "user" else "white",
-                                         "border": "1px solid #E0E6ED", "borderRadius": "8px"})
+    return html.Article(contents, style={"padding": "11px 12px", "marginBottom": "10px",
+                                         "background": "#EEF7F5" if role == "user" else "#FFFFFF",
+                                         "border": "1px solid #D9E2EC", "borderRadius": "9px",
+                                         "boxShadow": "0 1px 2px rgba(23, 43, 77, 0.04)"})

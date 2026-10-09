@@ -34,6 +34,9 @@ def test_chat_heading_and_setup_state(tmp_path):
         indexed = {getattr(item, "id", None): item for item in nodes(panel)}
         assert indexed["forge-chat-heading"].children == "Chat"
         assert indexed["forge-chat-model-status"].children == "Model setup needed"
+        assert panel.className == "forge-chat-panel"
+        assert panel.style["background"] == "#F8FAFC"
+        assert indexed["forge-chat-send"].style["background"] == "#0F766E"
         assert "CrystalForge" not in text(panel)
         assert "registered copies" in text(panel)
     finally:
