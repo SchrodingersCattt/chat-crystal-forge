@@ -1,6 +1,7 @@
 """Real native-host integration; no API key or fabricated model response."""
 
 import asyncio
+import json
 import subprocess
 import sys
 from importlib.resources import files
@@ -74,6 +75,12 @@ def test_native_web_with_chat_returns_layout_and_direct_checks(tmp_path, monkeyp
         assert response.status_code == 200
         text = response.get_data(as_text=True)
         assert "forge-chat-transcript" in text and "crystal-graph" in text
+        compact_css = client.get("/assets/panel_resize.css")
+        compact_js = client.get("/assets/panel_resize.js")
+        assert compact_css.status_code == 200
+        assert "@media (max-width: 755px)" in compact_css.get_data(as_text=True)
+        assert compact_js.status_code == 200
+        assert "COMPACT_BREAKPOINT" in compact_js.get_data(as_text=True)
         service.submit("/inspect")
         service._future.result(timeout=40)
         assert service.snapshot()["structures"][0]["report"]["coverage"]["executed"]
@@ -89,6 +96,49 @@ def test_native_web_with_chat_returns_layout_and_direct_checks(tmp_path, monkeyp
         viewer.close_extensions()
         viewer.crystal_backend.close()
     assert service.snapshot()["status"] == "closed"
+
+
+def test_native_web_prunes_stale_scene_store(tmp_path, monkeypatch):
+    from mat_viewer.app import create_app
+    from mat_viewer.scenes import SceneStore
+
+    stale_path = tmp_path / "stale-scenes.json"
+    stale_path.write_text(json.dumps({
+        "version": 1,
+        "active_id": "scene_stale",
+        "order": ["scene_stale"],
+        "scenes": [{
+            "id": "scene_stale",
+            "label": "Vanished upload",
+            "structure_name": "VANISHED_UPLOAD",
+            "state_patch": {},
+            "camera": None,
+            "created_at": 0.0,
+            "updated_at": 0.0,
+        }],
+    }), encoding="utf-8")
+    monkeypatch.setattr(
+        SceneStore,
+        "default_path",
+        classmethod(lambda cls, root_dir: str(stale_path)),
+    )
+
+    viewer = create_app(
+        preset_path=str(tmp_path / "viewer.json"),
+        root_dir=str(tmp_path),
+        cif_paths=[str(demo())],
+    )
+    try:
+        scenes = viewer.crystal_backend.scene_options()
+        assert scenes
+        assert all(item["structure_name"] != "VANISHED_UPLOAD" for item in scenes)
+        persisted = json.loads(stale_path.read_text(encoding="utf-8"))
+        assert all(
+            item["structure_name"] != "VANISHED_UPLOAD"
+            for item in persisted["scenes"]
+        )
+    finally:
+        viewer.crystal_backend.close()
 
 
 def test_native_tui_keeps_viewer_and_routes_chat_input(tmp_path):
