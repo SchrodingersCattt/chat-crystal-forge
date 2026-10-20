@@ -75,8 +75,10 @@ def test_native_web_with_chat_returns_layout_and_direct_checks(tmp_path, monkeyp
         assert response.status_code == 200
         text = response.get_data(as_text=True)
         assert "forge-chat-transcript" in text and "crystal-graph" in text
-        compact_css = client.get("/assets/panel_resize.css")
-        compact_js = client.get("/assets/panel_resize.js")
+        from mat_viewer.app.build_info import asset_url_token
+        assets = f"/assets/{asset_url_token()}"
+        compact_css = client.get(f"{assets}/panel_resize.css")
+        compact_js = client.get(f"{assets}/panel_resize.js")
         assert compact_css.status_code == 200
         assert "@media (max-width: 755px)" in compact_css.get_data(as_text=True)
         assert compact_js.status_code == 200
