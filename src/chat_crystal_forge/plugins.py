@@ -7,10 +7,81 @@ snapshots. No replacement viewer, global service or model credentials in compone
 from __future__ import annotations
 
 import json
+import re
 
 from mat_viewer.extensions import Extension
 
 from .service import ForgeService
+
+_TOOL_PREFIX = re.compile(
+    r"^\[(?P<source>direct|model) tool:\s*(?P<name>[^;\]]+)(?:;\s*call\s+(?P<call>\S+))?\]\s*"
+)
+_KEY_ARG_FIELDS = (
+    "structure_id", "method", "count", "random_seed", "coupled",
+    "reference_formula", "requested_count", "returned_count",
+    "hydrogen_count", "export_id", "revision_id",
+)
+
+
+def parse_tool_message(content: str) -> dict:
+    """Split a stored tool message into name, payload, status and short result."""
+    match = _TOOL_PREFIX.match(content or "")
+    name = (match.group("name").strip() if match else None) or "tool"
+    source = match.group("source") if match else "tool"
+    remainder = content[match.end():] if match else content
+    start = remainder.find("{")
+    payload = None
+    if start >= 0:
+        try:
+            payload = json.loads(remainder[start:])
+        except (ValueError, TypeError):
+            payload = None
+    status = _tool_status(payload, remainder if payload is None else None)
+    summary = tool_summary(content)
+    args = _key_args(payload) if isinstance(payload, dict) else {}
+    return {
+        "name": name,
+        "source": source,
+        "payload": payload,
+        "status": status,
+        "summary": summary,
+        "args": args,
+    }
+
+
+def _tool_status(payload, fallback: str | None = None) -> str:
+    if not isinstance(payload, dict):
+        if fallback and "error" in fallback.lower():
+            return "error"
+        return "done"
+    if "error" in payload:
+        return "error"
+    if payload.get("status") == "awaiting_decision":
+        return "awaiting"
+    report = payload.get("report")
+    if isinstance(report, dict) and report.get("status"):
+        return str(report["status"])
+    checks = payload.get("checks")
+    if isinstance(checks, dict) and "passed" in checks:
+        return "passed" if checks.get("passed") else "blocked"
+    if payload.get("status") in {"passed", "blocked", "interrupted", "error"}:
+        return str(payload["status"])
+    if payload.get("operation"):
+        return "done"
+    if "structures" in payload:
+        return "done"
+    return "done"
+
+
+def _key_args(payload: dict) -> dict:
+    args = {}
+    for key in _KEY_ARG_FIELDS:
+        if key in payload and payload[key] is not None:
+            value = payload[key]
+            if isinstance(value, str) and len(value) > 48:
+                value = value[:8] + "…"
+            args[key] = value
+    return args
 
 
 def tool_summary(content: str) -> str:
@@ -32,6 +103,8 @@ def tool_summary(content: str) -> str:
         lines.extend(report.get("findings", []))
         lines.append("Read-only inspection; no repair or completion certification.")
         return "\n".join(lines)
+    if result.get("error"):
+        return str(result["error"])
     if "structures" in result:
         return "Registered structures:\n" + "\n".join(
             f"{item['name']} · {item['id']}" for item in result["structures"]
@@ -49,6 +122,37 @@ def tool_summary(content: str) -> str:
     if result.get("status") in {"passed", "blocked"} and ("reasons" in result or "message" in result):
         return str(result.get("message") or result.get("reasons"))
     return content
+
+
+def _revision_strip(snapshot: dict):
+    """Compact revision summary from the session snapshot (not Scene tabs)."""
+    from dash import html
+
+    revisions = snapshot.get("revisions") or []
+    structures = {item["id"]: item for item in snapshot.get("structures") or []}
+    if not revisions:
+        return [html.Div("No revisions yet", style={"color": "#98A2B3"})]
+    chips = []
+    for item in revisions[-8:]:
+        current = structures.get(item["structure_id"], {}).get("revision_id") == item["id"]
+        label = f"{item.get('operation', 'op')} · {item['id'][:8]}"
+        chips.append(html.Span(
+            label + (" ★" if current else ""),
+            title=f"structure {item.get('structure_id', '')[:8]}",
+            style={
+                "display": "inline-block", "fontSize": "11px", "fontWeight": "650",
+                "padding": "3px 8px", "margin": "0 4px 4px 0", "borderRadius": "999px",
+                "background": "#E7F4F1" if current else "#F2F4F7",
+                "color": "#0F615B" if current else "#526579",
+                "border": "1px solid #B6E0DA" if current else "1px solid #E4E7EC",
+            },
+        ))
+    return [
+        html.Div("Revisions (scientific copies · Scene ≠ version)",
+                 style={"fontSize": "11px", "fontWeight": "700", "color": "#667085",
+                        "marginBottom": "4px"}),
+        html.Div(chips),
+    ]
 
 
 class ForgeChatExtension(Extension):
@@ -78,15 +182,23 @@ class ForgeChatExtension(Extension):
                 html.Details([
                     html.Summary("How to use", style={"cursor": "pointer", "color": "#344054",
                                                       "fontWeight": "650"}),
-                    html.P("Use /inspect for MCK checks and /list for input IDs. Natural-language "
-                           "chat needs a configured model. Checks target registered copies, not "
-                           "subsequent native viewer edits; preparation requires explicit scientific decisions."),
+                    html.P(
+                        "Use /inspect for MCK checks and /list for input IDs. Natural-language "
+                        "chat needs a configured model. Chat edits registered copies only—not "
+                        "the live center Scene. After an Operation, reload the structure in the "
+                        "viewer manually until MatterVis exposes an extension write API "
+                        "(register/reload/focus). Preparation requires explicit scientific decisions."
+                    ),
                 ], style={"fontSize": "12px", "color": "#667085", "background": "#FFFFFF",
                           "border": "1px solid #E4E7EC", "borderRadius": "8px", "padding": "8px 10px"}),
                 html.Div("Model setup needed" if self.service.settings.configuration_error()
                          else "Model configured", id="forge-chat-model-status",
                          style={"fontSize": "12px", "color": "#526579"}),
                 html.Div(id="forge-chat-inputs", style={"fontSize": "12px", "color": "#526579"}),
+                html.Div(id="forge-chat-revisions",
+                         style={"fontSize": "12px", "color": "#526579",
+                                "background": "#FFFFFF", "border": "1px solid #E4E7EC",
+                                "borderRadius": "8px", "padding": "8px 10px"}),
                 html.Div(
                     id="forge-chat-transcript",
                     role="log",
@@ -142,7 +254,7 @@ class ForgeChatExtension(Extension):
         @app.callback(
             Output("forge-chat-transcript", "children"), Output("forge-chat-status", "children"),
             Output("forge-chat-send", "disabled"), Output("forge-chat-inputs", "children"),
-            Output("forge-chat-render-key", "data"),
+            Output("forge-chat-revisions", "children"), Output("forge-chat-render-key", "data"),
             Input("forge-chat-poll", "n_intervals"), State("forge-chat-render-key", "data"),
         )
         def refresh(_ticks, previous_key):
@@ -150,14 +262,15 @@ class ForgeChatExtension(Extension):
             render_key = json.dumps([
                 [message["id"] for message in snapshot["messages"][-50:]],
                 [item["id"] for item in snapshot["structures"]],
+                [item["id"] for item in snapshot.get("revisions", [])],
                 snapshot["status"], snapshot["busy"],
             ])
             if render_key == previous_key:
-                return (no_update,) * 5
+                return (no_update,) * 6
             cards = [_web_message(message) for message in snapshot["messages"][-50:]]
             status = "Working…" if snapshot["busy"] else snapshot["status"].capitalize()
             inputs = [html.Div(f"{item['name']} · {item['id'][:8]}") for item in snapshot["structures"]]
-            return cards, status, snapshot["busy"], inputs, render_key
+            return cards, status, snapshot["busy"], inputs, _revision_strip(snapshot), render_key
 
     def build_tui_panel(self, context):
         from textual.containers import Vertical
@@ -214,7 +327,17 @@ class ForgeChatExtension(Extension):
                 if message["id"] in self._message_ids:
                     continue
                 self._message_ids.add(message["id"])
-                body = tool_summary(message["content"]) if message["role"] == "tool" else message["content"]
+                if message["role"] == "tool":
+                    parsed = parse_tool_message(message["content"])
+                    args = ", ".join(f"{k}={v}" for k, v in parsed["args"].items()) or "—"
+                    body = (
+                        f"Tool Execution · {parsed['name']}\n"
+                        f"args: {args}\n"
+                        f"status: {parsed['status']}\n"
+                        f"{parsed['summary']}"
+                    )
+                else:
+                    body = message["content"]
                 log.write(Text(f"{message['role'].upper()}\n{body}\n"))
             status.update(
                 "Working…" if snapshot["busy"] else snapshot["status"]
@@ -233,31 +356,63 @@ class ForgeChatExtension(Extension):
         self.service.close()
 
 
+_STATUS_COLORS = {
+    "passed": "#0F615B",
+    "failed": "#B91C3C",
+    "blocked": "#875C16",
+    "error": "#B91C3C",
+    "awaiting": "#875C16",
+    "done": "#146C63",
+}
+
+
 def _web_message(message):
-    """Present native inspection fields without turning ordinary chat into logs."""
+    """Present tool calls as a Tool Execution panel; keep user/assistant as prose."""
     from dash import html
 
     role, content = message["role"], message["content"]
-    report = None
-    if role == "tool":
-        try:
-            payload = json.loads(content[content.index("{"):])
-            report = payload.get("report") if isinstance(payload, dict) else None
-        except (ValueError, TypeError):
-            pass
-    contents = [html.Div("You" if role == "user" else "Inspection" if isinstance(report, dict)
-                         else "Tool" if role == "tool" else "Assistant",
-                         style={"fontSize": "12px", "fontWeight": "bold", "color": "#526579",
-                                "marginBottom": "7px"})]
+    if role != "tool":
+        return html.Article([
+            html.Div("You" if role == "user" else "Assistant",
+                     style={"fontSize": "12px", "fontWeight": "bold", "color": "#526579",
+                            "marginBottom": "7px"}),
+            html.Div(content, style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
+                                     "fontSize": "14px", "lineHeight": "1.5"}),
+        ], style={"padding": "11px 12px", "marginBottom": "10px",
+                  "background": "#EEF7F5" if role == "user" else "#FFFFFF",
+                  "border": "1px solid #D9E2EC", "borderRadius": "9px",
+                  "boxShadow": "0 1px 2px rgba(23, 43, 77, 0.04)"})
+
+    parsed = parse_tool_message(content)
+    payload = parsed["payload"] if isinstance(parsed["payload"], dict) else {}
+    report = payload.get("report") if isinstance(payload.get("report"), dict) else None
+    status = parsed["status"]
+    status_color = _STATUS_COLORS.get(status, "#526579")
+    arg_bits = [f"{key}={value}" for key, value in parsed["args"].items()]
+    contents = [
+        html.Div([
+            html.Span("Tool Execution", style={"fontWeight": "750", "color": "#172B4D"}),
+            html.Span(f" · {parsed['name']}", style={"color": "#526579", "fontWeight": "650"}),
+        ], style={"fontSize": "12px", "marginBottom": "6px"}),
+        html.Div([
+            html.Span("Status ", style={"color": "#667085"}),
+            html.Span(status.capitalize(), style={"fontWeight": "750", "color": status_color}),
+        ], style={"fontSize": "12px", "marginBottom": "6px"}),
+    ]
+    if arg_bits:
+        contents.append(html.Div(
+            "Args: " + ", ".join(arg_bits),
+            style={"fontSize": "11px", "color": "#526579", "marginBottom": "6px",
+                   "fontFamily": "Consolas, monospace"},
+        ))
     if isinstance(report, dict):
-        colors = {"passed": "#0F615B", "failed": "#B91C3C", "blocked": "#875C16", "error": "#B91C3C"}
         rows = []
         for check in report.get("checks", []):
             state = check.get("status", "unknown")
             rows.append(html.Tr([
                 html.Td(check["name"].replace("_", " ").capitalize(), style={"padding": "5px 0"}),
                 html.Td(state.capitalize(), style={"textAlign": "right", "fontWeight": "bold",
-                                                   "color": colors.get(state, "#526579")}),
+                                                   "color": _STATUS_COLORS.get(state, "#526579")}),
             ]))
         contents.extend([
             html.Table(html.Tbody(rows), style={"width": "100%", "fontSize": "12px",
@@ -266,16 +421,17 @@ def _web_message(message):
                                                                "marginTop": "8px"}),
         ])
     else:
-        contents.append(html.Div(tool_summary(content) if role == "tool" else content,
+        contents.append(html.Div(parsed["summary"],
                                  style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
-                                        "fontSize": "14px", "lineHeight": "1.5"}))
-    if role == "tool":
-        contents.append(html.Details([
-            html.Summary("Details & raw result", style={"cursor": "pointer", "color": "#526579"}),
-            html.Pre(content, style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
-                                     "fontFamily": "Consolas, monospace", "fontSize": "11px"}),
-        ], style={"fontSize": "12px", "marginTop": "8px"}))
+                                        "fontSize": "13px", "lineHeight": "1.45",
+                                        "color": "#344054"}))
+    contents.append(html.Details([
+        html.Summary("Details & raw result", style={"cursor": "pointer", "color": "#526579"}),
+        html.Pre(content, style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
+                                 "fontFamily": "Consolas, monospace", "fontSize": "11px"}),
+    ], style={"fontSize": "12px", "marginTop": "8px"}))
     return html.Article(contents, style={"padding": "11px 12px", "marginBottom": "10px",
-                                         "background": "#EEF7F5" if role == "user" else "#FFFFFF",
+                                         "background": "#FFFFFF",
                                          "border": "1px solid #D9E2EC", "borderRadius": "9px",
+                                         "borderLeft": f"3px solid {status_color}",
                                          "boxShadow": "0 1px 2px rgba(23, 43, 77, 0.04)"})

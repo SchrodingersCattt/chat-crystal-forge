@@ -3,7 +3,11 @@
 import json
 
 from chat_crystal_forge.config import Settings
-from chat_crystal_forge.plugins import ForgeChatExtension, _web_message
+from chat_crystal_forge.plugins import (
+    ForgeChatExtension,
+    _web_message,
+    parse_tool_message,
+)
 from chat_crystal_forge.service import ForgeService
 
 
@@ -34,11 +38,13 @@ def test_chat_heading_and_setup_state(tmp_path):
         indexed = {getattr(item, "id", None): item for item in nodes(panel)}
         assert indexed["forge-chat-heading"].children == "Chat"
         assert indexed["forge-chat-model-status"].children == "Model setup needed"
+        assert "forge-chat-revisions" in indexed
         assert panel.className == "forge-chat-panel"
         assert panel.style["background"] == "#F8FAFC"
         assert indexed["forge-chat-send"].style["background"] == "#0F766E"
         assert "CrystalForge" not in text(panel)
         assert "registered copies" in text(panel)
+        assert "manual" in text(panel).lower() or "reload" in text(panel).lower()
     finally:
         plugin.close()
 
@@ -51,6 +57,8 @@ def test_inspection_card_exposes_failed_and_blocked_checks_and_raw_record():
     content = "[direct tool: inspect_structure] " + json.dumps(payload)
     card = _web_message({"role": "tool", "content": content})
     visible = text(card)
+    assert "Tool Execution" in visible
+    assert "inspect_structure" in visible
     assert "Hard clash" in visible and "Failed" in visible
     assert "Formula consistency" in visible and "Blocked" in visible
     assert "Details & raw result" in visible
@@ -58,8 +66,33 @@ def test_inspection_card_exposes_failed_and_blocked_checks_and_raw_record():
     assert any(item.__class__.__name__ == "Table" for item in nodes(card))
 
 
+def test_tool_execution_shows_name_args_status_and_short_result():
+    payload = {
+        "operation": "disorder",
+        "method": "optimal",
+        "structure_id": "abcd1234ef",
+        "requested_count": 1,
+        "returned_count": 1,
+        "distinct_source_indices": 1,
+        "duplicate_count": 0,
+    }
+    content = "[direct tool: resolve_disorder] " + json.dumps(payload)
+    parsed = parse_tool_message(content)
+    assert parsed["name"] == "resolve_disorder"
+    assert parsed["args"]["method"] == "optimal"
+    assert parsed["status"] == "done"
+    card = _web_message({"role": "tool", "content": content})
+    visible = text(card)
+    assert "Tool Execution" in visible
+    assert "resolve_disorder" in visible
+    assert "Status" in visible
+    assert "Args:" in visible
+    assert "optimal" in visible
+
+
 def test_user_message_remains_plain_prose():
     card = _web_message({"role": "user", "content": "What is this structure?"})
     assert "You" in text(card)
     assert "What is this structure?" in text(card)
+    assert "Tool Execution" not in text(card)
     assert not any(item.__class__.__name__ == "Pre" for item in nodes(card))

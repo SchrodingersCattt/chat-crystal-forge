@@ -3,25 +3,39 @@
 This walkthrough uses the native MatterVis host and CrystalForge's local
 session state. It does not install or call `mattervis-saas`.
 
-## Browser path
+Chat tools edit **registered copies** only. After an Operation, reload the
+structure in the center viewer manually until MatterVis ships an extension
+write API ([MatterVis#217](https://github.com/SchrodingersCattt/MatterVis/issues/217)).
+Scene tabs are presentation slots, not scientific versions
+([MatterVis#218](https://github.com/SchrodingersCattt/MatterVis/issues/218),
+[MatterVis#219](https://github.com/SchrodingersCattt/MatterVis/issues/219)).
 
-Install the pinned editable sources, then start the UI:
+## Install once
 
 ```bash
 python -m pip install -e external/molcryskit -e "external/mattervis[all,test]" -e ".[dev]"
+```
+
+## DAP-4 happy path (browser)
+
+Start the UI on the authorized demo input (does not modify
+`examples/structures/DAP-4.cif`):
+
+```bash
 mat-chat ui examples/structures/DAP-4.cif --session .crystalforge/dap4-demo
 ```
 
-In the Chat panel run:
+In the Chat panel, Tool Execution cards show tool name, key args, status and a
+short result. Run in order:
 
 ```text
 /inspect
+/list
 /complete-h <id>
 ```
 
-The input has an ambiguous `?` moiety, so the second command must stop and ask
-for a reference. Confirm `C6 H18 Cl3 N3 O12`, then choose a bounded disorder
-delivery and complete the workflow:
+DAP-4 has an ambiguous `?` moiety, so `/complete-h <id>` **must stop and ask**
+for a reference (`awaiting_decision`). Confirm the formula, then finish:
 
 ```text
 /complete-h <id> C6 H18 Cl3 N3 O12
@@ -30,35 +44,37 @@ delivery and complete the workflow:
 /finish
 ```
 
-The original file in `examples/structures/` is never modified. The Chat panel
-shows the reload report, including all six checks and the export path.
+Replace `<id>` with the structure id from `/list` or the inspect card. The Chat
+revision strip lists scientific copies from the session snapshot; reload the
+center Scene yourself after preparation steps if the viewer still shows the
+launch-time file.
 
-## Rejection and recovery paths
+Pass signals: six MCK checks on the registered copy; hydrogen completion and
+bounded disorder each create a revision; export reloads all six checks; `/finish`
+succeeds only with a non-stale passing export that no longer contains disorder.
 
-Before exporting, `/finish` returns `missing_export`. Exporting the
-hydrogenated crystal while disorder remains returns `disorder_unresolved`.
-`/finish` passes only after that export no longer has disorder and the six
-reloaded checks pass. A malformed export or a changed revision returns a
-blocked result and leaves the evidence in SQLite.
-Stop the process during a preparation job, then reopen the same directory:
+## One rejection path (try this too)
 
-```bash
-mat-chat ui --session .crystalforge/dap4-demo
-mat-chat tui --session .crystalforge/dap4-demo
+Before any export, run:
+
+```text
+/finish
 ```
 
-The job remains `interrupted` until a new explicit command is submitted; it is
-never silently replayed.
+Expected: blocked finish with `missing_export` (or equivalent). Evidence stays
+in the session; `/finish` does not invent a pass. Other rejection cases
+(`disorder_unresolved`, interrupted jobs) are listed in
+[`docs/SLICE6_HANDOFF.md`](../docs/SLICE6_HANDOFF.md).
 
 ## Terminal and HTTP checks
 
-The terminal host reads the same session snapshot without starting a browser:
+Same session without a browser:
 
 ```bash
 mat-chat tui --session .crystalforge/dap4-demo
 ```
 
-The optional standalone API is independent of MatterVis SaaS:
+Optional standalone API (independent of MatterVis SaaS):
 
 ```bash
 mat-chat serve --root .crystalforge --port 8051
@@ -66,8 +82,7 @@ curl http://127.0.0.1:8051/healthz
 curl -X POST http://127.0.0.1:8051/v1/sessions
 ```
 
-Natural-language requests require local `OPENAI_API_KEY`, `OPENAI_BASE_URL` and
-`OPENAI_MODEL`. Direct slash commands work without those settings, and secrets
-never enter the browser payload or session database. The clean-checkout install
-and terminal command-chain record for 2026-10-09 is in
+Natural-language requests need local `OPENAI_API_KEY`, `OPENAI_BASE_URL` and
+`OPENAI_MODEL`. Slash commands work without them; secrets never enter the
+browser payload or session database. Install evidence:
 [`docs/validation.md`](../docs/validation.md).

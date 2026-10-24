@@ -84,6 +84,18 @@ PyPI dependency solution.
 Do not treat a parent commit as a commit of uncommitted files inside a submodule.
 Do not suppress dirty-submodule reporting or enable automatic source upgrades.
 
+## MatterVis package asks (Forge integration)
+
+Forge keeps workflow plugins in this repository. Package-level host gaps are tracked
+upstream (English, no local paths):
+
+- [MatterVis#217](https://github.com/SchrodingersCattt/MatterVis/issues/217) — extension write API (`register` / `reload` / `focus`)
+- [MatterVis#218](https://github.com/SchrodingersCattt/MatterVis/issues/218) — Forge revision ↔ Scene mapping after Operations
+- [MatterVis#219](https://github.com/SchrodingersCattt/MatterVis/issues/219) — optional Structure Catalog; Scene ≠ scientific versions
+
+Until #217 lands, Chat documents that Operations edit registered copies and the
+center viewer may need a manual reload.
+
 ## Attribution and licenses
 
 The parent MIT license covers its original material. Preserve each upstream's
