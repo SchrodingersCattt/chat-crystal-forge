@@ -23,6 +23,25 @@ _KEY_ARG_FIELDS = (
 )
 
 
+_REASON_LABELS = {
+    "missing_export": "no certified export yet — run /export first",
+    "disorder_unresolved": "export still contains disorder",
+    "checks_not_passed": "export reload checks did not all pass",
+    "export_changed": "export file changed after certification (stale)",
+    "empty_batch": "no registered structures in this session",
+    "formula_reference_required": "confirm an independent formula/moiety",
+    "invalid_formula_reference": "provide a parseable formula/moiety",
+}
+
+
+def _reason_label(code: str | None) -> str:
+    if not code:
+        return "blocked"
+    return _REASON_LABELS.get(str(code), str(code))
+
+
+
+
 def parse_tool_message(content: str) -> dict:
     """Split a stored tool message into name, payload, status and short result."""
     match = _TOOL_PREFIX.match(content or "")
@@ -119,8 +138,22 @@ def tool_summary(content: str) -> str:
         return f"Hydrogen preparation finished with {result.get('hydrogen_count')} H atoms; export/reload is still required."
     if "checks" in result and "export_id" in result:
         return "Export reload: " + ("passed" if result["checks"].get("passed") else "blocked")
-    if result.get("status") in {"passed", "blocked"} and ("reasons" in result or "message" in result):
-        return str(result.get("message") or result.get("reasons"))
+    if result.get("status") == "blocked":
+        if result.get("reason"):
+            return "Finish blocked: " + _reason_label(result.get("reason"))
+        reasons = result.get("reasons")
+        if isinstance(reasons, list) and reasons:
+            lines = ["Finish blocked:"]
+            for item in reasons:
+                if not isinstance(item, dict):
+                    lines.append("- " + str(item))
+                    continue
+                sid = str(item.get("structure_id") or "")[:8] or "?"
+                lines.append(f"- {sid}: {_reason_label(item.get('reason'))}")
+            return "\n".join(lines)
+        return "Finish blocked"
+    if result.get("status") == "passed" and ("message" in result or "reasons" in result):
+        return str(result.get("message") or "All declared inputs certified")
     return content
 
 
@@ -131,7 +164,7 @@ def _revision_strip(snapshot: dict):
     revisions = snapshot.get("revisions") or []
     structures = {item["id"]: item for item in snapshot.get("structures") or []}
     if not revisions:
-        return [html.Div("No revisions yet", style={"color": "#98A2B3"})]
+        return [html.Div("No revisions yet — /complete-h and /disorder create scientific copies here", style={"color": "#98A2B3"})]
     chips = []
     for item in revisions[-8:]:
         current = structures.get(item["structure_id"], {}).get("revision_id") == item["id"]
@@ -148,7 +181,7 @@ def _revision_strip(snapshot: dict):
             },
         ))
     return [
-        html.Div("Revisions (scientific copies · Scene ≠ version)",
+        html.Div("Revisions (scientific copies — Scene tabs are not versions)",
                  style={"fontSize": "11px", "fontWeight": "700", "color": "#667085",
                         "marginBottom": "4px"}),
         html.Div(chips),

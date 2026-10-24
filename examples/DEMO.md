@@ -53,17 +53,21 @@ Pass signals: six MCK checks on the registered copy; hydrogen completion and
 bounded disorder each create a revision; export reloads all six checks; `/finish`
 succeeds only with a non-stale passing export that no longer contains disorder.
 
-## One rejection path (try this too)
+## Rejection paths (try at least one)
 
-Before any export, run:
+**Before any export**, run:
 
 ```text
 /finish
 ```
 
-Expected: blocked finish with `missing_export` (or equivalent). Evidence stays
-in the session; `/finish` does not invent a pass. Other rejection cases
-(`disorder_unresolved`, interrupted jobs) are listed in
+Expected Tool Execution card: status **Blocked**, short result like
+`Finish blocked: … no certified export yet — run /export first` (`missing_export`).
+Evidence stays in the session; `/finish` does not invent a pass.
+
+**Optional second check** — after `/complete-h` but before disorder is resolved,
+exporting or finishing should show `disorder_unresolved` (or a blocked export).
+Interrupted mid-job recovery is covered in
 [`docs/SLICE6_HANDOFF.md`](../docs/SLICE6_HANDOFF.md).
 
 ## Terminal and HTTP checks

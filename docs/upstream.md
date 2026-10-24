@@ -26,11 +26,12 @@ and chemistry bug fixes in MCK, not unrelated upstream edits. Reproduce bugs and
 add regression tests in the owning repo; do not duplicate state or sleep to mask
 races. Publish a reachable upstream commit before sharing a dependent parent pin.
 
-The minimal `mat_viewer.extensions.Extension` host patch is being integrated by
-main and is under validation, not published. It extends actual `create_app` and
-`CrystalTUI`, not replacement viewers. See [Plugin protocol](plugin-protocol.md)
-for current hooks and the separate future versioned command/event design.
-No upstream bug fix is certified by this note.
+The optional `mat_viewer.extensions.Extension` host is available in the pinned
+MatterVis release (see submodule gitlink / `v0.0.6`). Forge registers Chat through
+that Extension API on actual `create_app` / `CrystalTUI` hosts — not replacement
+viewers. See [Plugin protocol](plugin-protocol.md) for hooks. Package-level write
+API and revision↔Scene mapping remain open upstream issues (#217–#219 below).
+No upstream bug fix is certified by this note alone.
 
 ## Checkout and reproducibility
 

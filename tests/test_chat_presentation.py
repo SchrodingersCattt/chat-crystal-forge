@@ -96,3 +96,71 @@ def test_user_message_remains_plain_prose():
     assert "What is this structure?" in text(card)
     assert "Tool Execution" not in text(card)
     assert not any(item.__class__.__name__ == "Pre" for item in nodes(card))
+
+
+def test_blocked_finish_card_humanizes_missing_export():
+    payload = {
+        "status": "blocked",
+        "reasons": [{"structure_id": "abcd1234efgh", "reason": "missing_export"}],
+    }
+    content = "[direct tool: finish_batch] " + json.dumps(payload)
+    parsed = parse_tool_message(content)
+    assert parsed["status"] == "blocked"
+    assert "Finish blocked" in parsed["summary"]
+    assert "no certified export yet" in parsed["summary"]
+    assert "missing_export" not in parsed["summary"]
+    assert "abcd1234" in parsed["summary"]
+    card = _web_message({"role": "tool", "content": content})
+    visible = text(card)
+    assert "Tool Execution" in visible
+    assert "Blocked" in visible
+    assert "Finish blocked" in visible
+    assert "no certified export yet" in visible
+
+
+def test_awaiting_decision_card_shows_question():
+    payload = {
+        "status": "awaiting_decision",
+        "reason": "formula_reference_required",
+        "question": "Confirm an independent formula/moiety before hydrogen completion.",
+    }
+    content = "[direct tool: complete_hydrogens] " + json.dumps(payload)
+    parsed = parse_tool_message(content)
+    assert parsed["status"] == "awaiting"
+    assert "Awaiting decision" in parsed["summary"]
+    card = _web_message({"role": "tool", "content": content})
+    visible = text(card)
+    assert "Awaiting" in visible
+    assert "Confirm an independent formula" in visible
+
+
+def test_error_tool_card_surfaces_message():
+    payload = {"error": "Unknown structure ID. Register the CIF with /load first."}
+    content = "[direct tool: resolve_disorder] " + json.dumps(payload)
+    parsed = parse_tool_message(content)
+    assert parsed["status"] == "error"
+    assert "Unknown structure ID" in parsed["summary"]
+    card = _web_message({"role": "tool", "content": content})
+    assert "Error" in text(card)
+    assert "Unknown structure ID" in text(card)
+
+
+def test_revision_strip_distinguishes_scene_from_versions(tmp_path):
+    from chat_crystal_forge.plugins import _revision_strip
+
+    empty = text(_revision_strip({"revisions": [], "structures": []}))
+    assert "No revisions yet" in empty
+    assert "scientific copies" in empty.lower() or "complete-h" in empty.lower()
+
+    snapshot = {
+        "structures": [{"id": "struct01", "revision_id": "revbbbb02"}],
+        "revisions": [
+            {"id": "revaaaa01", "structure_id": "struct01", "operation": "complete_hydrogens"},
+            {"id": "revbbbb02", "structure_id": "struct01", "operation": "disorder"},
+        ],
+    }
+    strip = _revision_strip(snapshot)
+    visible = text(strip)
+    assert "Scene tabs are not versions" in visible
+    assert "disorder" in visible
+    assert "revbbbb0" in visible

@@ -72,6 +72,12 @@ mat-chat tui --session .crystalforge/dap4-demo
 | Malformed export / changed revision | Blocked result; evidence stays in SQLite (not silently “all pass”). |
 | Kill the process mid-job, reopen `--session .crystalforge/dap4-demo` | Job stays `interrupted` until a **new explicit** command; never auto-replayed. |
 
+## Code polish already on main (agent)
+
+Forge-only Chat presentation is on `main` (Tool Execution cards, revision strip,
+humanized blocked-finish copy, DEMO rejection wording). Submodules pinned MatterVis
+`v0.0.6` / MolCrysKit `v0.8.0`. Remaining Slice 6 items below are **user-only**.
+
 ## Slice 6 remaining — user-only
 
 These stay open until Ming-Yu explicitly confirms (do not mark from agent runs alone):

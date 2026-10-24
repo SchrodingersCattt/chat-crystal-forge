@@ -92,8 +92,9 @@ def test_native_web_with_chat_returns_layout_and_direct_checks(tmp_path, monkeyp
         refresh = next(value["callback"].__wrapped__ for key, value in viewer.callback_map.items()
                    if "forge-chat-transcript" in key)
         rendered = refresh(0, "")
-        assert len(rendered) == 5
-        assert refresh(1, rendered[-1]) == (no_update,) * 5
+        assert len(rendered) == 6  # transcript, status, send disabled, inputs, revisions, render key
+        assert "Scene tabs are not versions" in str(rendered[4]) or "No revisions yet" in str(rendered[4])
+        assert refresh(1, rendered[-1]) == (no_update,) * 6
     finally:
         viewer.close_extensions()
         viewer.crystal_backend.close()
