@@ -140,5 +140,5 @@ journey; do not infer either from implementation permission. Main reviews docume
 statuses, host compatibility, public snapshot details, install commands and
 verification evidence. Real endpoint configuration and redistributable demo data
 remain external inputs. A 100-structure demonstration is a target, not a measured
-result. Final install/docs/demo, learning wrap-up and app map remain unchecked.
+result. Slice 6 final install/docs/demo polish, learning wrap-up confirmation and live Final Review remain pending user acceptance (see docs/SLICE6_HANDOFF.md); static app-map reference already exists.
 No complete-app, upstream-bug-fix or public-release claim follows from these drafts.

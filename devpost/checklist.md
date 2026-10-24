@@ -5,7 +5,7 @@ status: draft
 
 # Build Checklist
 
-Build mode: unset — pending early first-slice feedback; no preference inferred.
+Build mode: slices 1–5 complete in code; Slice 6 pending user acceptance (hands-on + Final Review).
 
 Approval evidence: “Start implementation” on 2026-09-29 followed the complete
 12-section plan. Slices 1–5 are implemented in the shared service and both native
@@ -119,11 +119,12 @@ learner feedback are pending.
   and the wrong right-panel heading. MatterVis now owns the left-tab workbench,
   current-frame delivery, explicit hydrogen visibility, camera reset and SVG
   cleanup fixes. Forge's panel is titled Chat and has compact result cards. This
-  is early review feedback; later repair/export slices are still not complete.
+  was early review feedback at the time; slices 2–5 (repair/export/finish) are now implemented — only Slice 6 user acceptance remains open.
 
-- The first preview uses one background thread for read-only tools; process-based
-  mutation and full recovery remain later slices. Native uploads/edits are not yet
-  synchronized with Forge's registered input copies and are explicitly labeled.
+- Historical note (first preview): read-only tools used one background thread.
+  Process-based mutation, batch recovery and finish gating are now implemented in
+  slices 2–5. Native uploads/edits are still not synchronized with Forge's registered
+  input copies and remain explicitly labeled (out of submission scope).
 - Validation: 43 parent tests passed before the added browser-import isolation
   test. Native extension and callback-layout regression subset: 37 passed.
   Full MatterVis run: 1172 passed, 48 skipped, one failure in the existing

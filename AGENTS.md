@@ -11,10 +11,14 @@ Reuse MolCrysKit for structure perception and approved operations, and MatterVis
 for visualization. Build the workflow and real task experience, not a new
 chemistry engine or a generic chatbot.
 
-The first implementation is a read-only inspection preview: native MatterVis
-UI/TUI plus Forge Chat, registered CIF copies, MCK reports and persisted sessions.
-Repairs, full batch recovery and `finish` are not implemented. Distinguish live
-endpoint verification from mocked protocol tests and direct inspection commands.
+Slices 1–5 are implemented: native MatterVis UI/TUI plus Forge Chat, registered
+CIF copies, MCK inspection/preparation (hydrogen completion and disorder decisions),
+isolated jobs with SQLite recovery, strict export/reload evidence, and a code-owned
+`finish` gate shared by both frontends. Slice 6 (install reproducibility, demo/docs
+polish, user hands-on and Final Review) is pending user acceptance — see
+[docs/SLICE6_HANDOFF.md](docs/SLICE6_HANDOFF.md) and [devpost/checklist.md](devpost/checklist.md).
+Distinguish live endpoint verification from mocked protocol tests and direct
+inspection commands.
 
 ## Read before changing an area
 
