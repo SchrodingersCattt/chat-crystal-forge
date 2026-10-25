@@ -49,6 +49,8 @@ def ui(
         viewer = create_app(
             preset_path=str(service.workspace / "viewer.json"),
             root_dir=str(service.workspace),
+            # These scenes show the registered input copies. Later revisions
+            # and /load calls are pushed through the extension write API.
             cif_paths=[str(path) for path in registered],
             extensions=(ForgeChatExtension(service),),
         )
@@ -77,6 +79,8 @@ def tui(
     service, registered = create_service(paths, session, env_file)
     viewer = None
     try:
+        # The terminal host opens the first crystal. Further inputs and
+        # revisions are pushed through the extension write API after mount.
         crystal = load_for_tui(str(registered[0]))
         viewer = CrystalTUI(crystal, extensions=(ForgeChatExtension(service),))
         viewer.run()

@@ -2,9 +2,9 @@
 
 ## Contract status and boundary
 
-The following is the minimal first-slice extension contract being integrated by
-main. The generic upstream host patch is under validation, not published; this
-document does not certify compatibility or a bug fix. The richer versioned
+The following is the extension contract integrated by main against the pinned
+MatterVis commit, including structure writes and revision↔Scene bindings. This
+document does not certify a chemistry bug fix. The richer versioned
 command/event protocol below is future design, not an existing API.
 
 MatterVis hosts optional extensions in its **actual** Dash and Textual apps.
@@ -31,7 +31,10 @@ them. Verify the installed pin before calling them.
 
 Context `viewer` is the **same** native backend/app, not a parallel controller.
 Context snapshots are detached observations, not writable handles into native
-state. Namespaced component IDs prevent host/extension collisions. Web callbacks
+state. Display updates use `context.revisions` (`register`, `reload`, `focus`)
+on the pinned host. Web focus includes that page's `extension-browser-target`
+token; the terminal host omits it. Namespaced component IDs prevent
+host/extension collisions. Web callbacks
 are registered at construction; this contract does not provide hot callback
 unregistration or dynamic lifecycle replacement. Cleanup must respect that limit.
 Precise context fields and hook return types remain subject to main's validation;
