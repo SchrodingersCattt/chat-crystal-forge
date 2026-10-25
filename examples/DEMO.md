@@ -28,11 +28,12 @@ mat-chat ui examples/structures/DAP-4.cif --session .crystalforge/dap4-demo
 ```
 
 In the Chat panel, Tool Execution cards show tool name, key args, status and a
-short result. The Chat header has a text-size control: **S**, **M** (default),
-**L** and **XL**. The choice is saved in this browser and restored the next time
-you open `mat-chat ui`. It changes type in the Chat panel (messages, tool cards,
-captions and the composer) and does not change the 3D viewer. At XL, cards and
-slash commands wrap inside the panel.
+short result. The Chat header has a text-size control: **S**, **M**,
+**L** (default, 16px) and **XL**. The choice is saved in this browser and restored
+the next time you open `mat-chat ui`. A browser that already saved another size
+keeps it until you pick a new one or clear site storage. It changes type in the
+Chat panel (messages, tool cards, captions and the composer) and does not change
+the 3D viewer. At XL, cards and slash commands wrap inside the panel.
 
 Run in order:
 
