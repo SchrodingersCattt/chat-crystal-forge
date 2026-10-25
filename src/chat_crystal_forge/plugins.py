@@ -41,6 +41,56 @@ def _reason_label(code: str | None) -> str:
     return _REASON_LABELS.get(str(code), str(code))
 
 
+# Root sizes for the Chat panel text-size control. M (13px) matches the previous
+# panel. Child font sizes are em against this 13px base so one root change scales
+# messages, tool cards, captions and the composer together.
+FONT_SIZE_STEPS: tuple[tuple[str, str, str], ...] = (
+    ("small", "S", "12px"),
+    ("default", "M", "13px"),
+    ("large", "L", "16px"),
+    ("xlarge", "XL", "18px"),
+)
+DEFAULT_FONT_SIZE = "default"
+_FONT_ROOT_PX = {step: size for step, _label, size in FONT_SIZE_STEPS}
+_FONT_BASE_PX = 13
+
+
+def font_size_px(step: str | None) -> str:
+    """Absolute Chat-panel root size. Unknown steps use the default."""
+    return _FONT_ROOT_PX.get(str(step or ""), _FONT_ROOT_PX[DEFAULT_FONT_SIZE])
+
+
+def _em(px: int) -> str:
+    """Design pixel size that tracks the panel root (13px at the default step).
+
+    Set this only on elements whose ancestor font size is the panel root.
+    Nested em values would compound.
+    """
+    if px == _FONT_BASE_PX:
+        return "1em"
+    return f"calc({px}em / {_FONT_BASE_PX})"
+
+
+def panel_style(step: str | None = None) -> dict:
+    """Chat panel chrome. The host column is about 320px wide, so the pane shrinks and scrolls."""
+    return {
+        "height": "100%",
+        "minHeight": "0",
+        "boxSizing": "border-box",
+        "padding": "18px 16px 20px",
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "10px",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "fontSize": font_size_px(step),
+        "background": "#F8FAFC",
+        "color": "#344054",
+        "minWidth": "0",
+        "maxWidth": "100%",
+        "overflowY": "auto",
+    }
+
+
 
 
 def parse_tool_message(content: str) -> dict:
@@ -165,7 +215,10 @@ def _revision_strip(snapshot: dict):
     revisions = snapshot.get("revisions") or []
     structures = {item["id"]: item for item in snapshot.get("structures") or []}
     if not revisions:
-        return [html.Div("No revisions yet — /complete-h and /disorder create scientific copies here", style={"color": "#98A2B3"})]
+        return [html.Div(
+            "No revisions yet — /complete-h and /disorder create scientific copies here",
+            style={"color": "#98A2B3", "fontSize": _em(12), "overflowWrap": "anywhere"},
+        )]
     chips = []
     for item in revisions[-8:]:
         current = structures.get(item["structure_id"], {}).get("revision_id") == item["id"]
@@ -174,8 +227,9 @@ def _revision_strip(snapshot: dict):
             label + (" ★" if current else ""),
             title=f"structure {item.get('structure_id', '')[:8]}",
             style={
-                "display": "inline-block", "fontSize": "11px", "fontWeight": "650",
+                "display": "inline-block", "fontSize": _em(11), "fontWeight": "650",
                 "padding": "3px 8px", "margin": "0 4px 4px 0", "borderRadius": "999px",
+                "maxWidth": "100%", "boxSizing": "border-box", "overflowWrap": "anywhere",
                 "background": "#E7F4F1" if current else "#F2F4F7",
                 "color": "#0F615B" if current else "#526579",
                 "border": "1px solid #B6E0DA" if current else "1px solid #E4E7EC",
@@ -183,10 +237,62 @@ def _revision_strip(snapshot: dict):
         ))
     return [
         html.Div("Revisions (scientific copies — Scene tabs are not versions)",
-                 style={"fontSize": "11px", "fontWeight": "700", "color": "#667085",
-                        "marginBottom": "4px"}),
+                 style={"fontSize": _em(11), "fontWeight": "700", "color": "#667085",
+                        "marginBottom": "4px", "overflowWrap": "anywhere"}),
         html.Div(chips),
     ]
+
+
+def _font_size_control():
+    """Header control. Dash persists ``value`` in localStorage for this browser."""
+    from dash import dcc, html
+
+    return html.Div(
+        [
+            html.Span(
+                "Text size",
+                id="forge-chat-font-label",
+                style={"fontSize": _em(12), "fontWeight": "650", "color": "#526579"},
+            ),
+            dcc.RadioItems(
+                id="forge-chat-font-size",
+                options=[{"label": label, "value": step} for step, label, _size in FONT_SIZE_STEPS],
+                value=DEFAULT_FONT_SIZE,
+                inline=True,
+                persistence=True,
+                persistence_type="local",
+                persisted_props=["value"],
+                className="forge-chat-font-size",
+                inputStyle={"margin": "0 4px 0 0", "accentColor": "#0F766E"},
+                labelStyle={
+                    "display": "inline-flex",
+                    "alignItems": "center",
+                    "margin": "0 8px 0 0",
+                    "whiteSpace": "nowrap",
+                    "cursor": "pointer",
+                    "fontSize": "1em",
+                },
+                style={
+                    "display": "flex",
+                    "flexWrap": "wrap",
+                    "alignItems": "center",
+                    "minWidth": "0",
+                    "maxWidth": "100%",
+                    "fontSize": _em(12),
+                },
+            ),
+        ],
+        id="forge-chat-font-control",
+        title="Chat text size: S, M (default), L, XL. Saved in this browser.",
+        style={
+            "display": "flex",
+            "flexWrap": "wrap",
+            "alignItems": "center",
+            "gap": "6px 10px",
+            "minWidth": "0",
+            "maxWidth": "100%",
+        },
+    )
 
 
 class ForgeChatExtension(Extension):
@@ -208,66 +314,100 @@ class ForgeChatExtension(Extension):
         return html.Section(
             [
                 html.Header([
-                    html.H2("Chat", id="forge-chat-heading",
-                            style={"margin": "0", "fontSize": "18px", "fontWeight": "750",
-                                   "letterSpacing": "-0.02em", "color": "#172B4D"}),
-                    html.Span("Ready", id="forge-chat-badge", style={"fontSize": "11px", "fontWeight": "700",
-                              "color": "#146C63", "background": "#E7F4F1", "borderRadius": "999px",
-                              "padding": "4px 8px"}),
-                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between",
-                          "paddingBottom": "12px", "borderBottom": "1px solid #D9E2EC"}),
+                    html.Div([
+                        html.H2("Chat", id="forge-chat-heading",
+                                style={"margin": "0", "fontSize": _em(18), "fontWeight": "750",
+                                       "letterSpacing": "-0.02em", "color": "#172B4D"}),
+                        html.Span("Ready", id="forge-chat-badge",
+                                  style={"fontSize": _em(11), "fontWeight": "700",
+                                         "color": "#146C63", "background": "#E7F4F1",
+                                         "borderRadius": "999px", "padding": "4px 8px",
+                                         "flexShrink": "0"}),
+                    ], style={"display": "flex", "alignItems": "center",
+                              "justifyContent": "space-between", "gap": "8px",
+                              "flexWrap": "wrap", "minWidth": "0"}),
+                    _font_size_control(),
+                ], id="forge-chat-header",
+                   style={"display": "flex", "flexDirection": "column", "gap": "8px",
+                          "paddingBottom": "12px", "borderBottom": "1px solid #D9E2EC",
+                          "minWidth": "0"}),
                 html.Details([
                     html.Summary("How to use", style={"cursor": "pointer", "color": "#344054",
                                                       "fontWeight": "650"}),
                     html.P(
-                        "Use /inspect for MCK checks and /list for input IDs. Natural-language "
-                        "chat needs a configured model. /load, /complete-h, /disorder, and "
-                        "/export update registered copies and the center viewer. Scene tabs "
-                        "are presentation slots, not scientific versions. Preparation requires "
-                        "explicit scientific decisions."
+                        "Text size (S, M, L, XL) is at the top of this panel. M is the default "
+                        "and the choice is saved in this browser. Slash commands stay available "
+                        "at every size: /inspect, /list, /complete-h, /disorder, /export, /finish "
+                        "and /help. Use /inspect for MCK checks and /list for input IDs. "
+                        "Natural-language chat needs a configured model. /load, /complete-h, "
+                        "/disorder, and /export update registered copies and the center viewer. "
+                        "Scene tabs are presentation slots, not scientific versions. "
+                        "Preparation requires explicit scientific decisions.",
+                        style={"margin": "8px 0 0", "overflowWrap": "anywhere"},
                     ),
-                ], style={"fontSize": "12px", "color": "#667085", "background": "#FFFFFF",
-                          "border": "1px solid #E4E7EC", "borderRadius": "8px", "padding": "8px 10px"}),
+                ], style={"fontSize": _em(12), "color": "#667085", "background": "#FFFFFF",
+                          "border": "1px solid #E4E7EC", "borderRadius": "8px",
+                          "padding": "8px 10px", "minWidth": "0"}),
                 html.Div("Model setup needed" if self.service.settings.configuration_error()
                          else "Model configured", id="forge-chat-model-status",
-                         style={"fontSize": "12px", "color": "#526579"}),
-                html.Div(id="forge-chat-inputs", style={"fontSize": "12px", "color": "#526579"}),
+                         style={"fontSize": _em(12), "color": "#526579", "overflowWrap": "anywhere"}),
+                html.Div(id="forge-chat-inputs",
+                         style={"fontSize": _em(12), "color": "#526579", "overflowWrap": "anywhere",
+                                "minWidth": "0"}),
                 html.Div(id="forge-chat-revisions",
-                         style={"fontSize": "12px", "color": "#526579",
-                                "background": "#FFFFFF", "border": "1px solid #E4E7EC",
-                                "borderRadius": "8px", "padding": "8px 10px"}),
+                         style={"color": "#526579", "background": "#FFFFFF",
+                                "border": "1px solid #E4E7EC", "borderRadius": "8px",
+                                "padding": "8px 10px", "minWidth": "0"}),
                 html.Div(
                     id="forge-chat-transcript",
                     role="log",
-                    style={"flex": "1", "overflowY": "auto", "minHeight": "100px",
-                           "paddingRight": "3px"},
+                    style={"flex": "1", "overflowY": "auto", "overflowX": "auto",
+                           "minHeight": "100px", "minWidth": "0", "paddingRight": "3px"},
                 ),
-                html.Div(id="forge-chat-status", role="status", style={"fontSize": "12px"}),
-                html.Div(id="forge-chat-error", role="alert", style={"color": "#B91C3C"}),
-                html.Label("Message", htmlFor="forge-chat-message",
-                           style={"fontSize": "12px", "color": "#526579"}),
-                dcc.Textarea(
-                    id="forge-chat-message", placeholder="Ask about registered structures…",
-                    style={"width": "100%", "minHeight": "84px", "fontFamily": "inherit",
-                           "fontSize": "13px", "boxSizing": "border-box", "padding": "11px",
-                           "border": "1px solid #C7D2DF", "borderRadius": "8px", "resize": "vertical",
-                           "background": "#FFFFFF", "color": "#172B4D"},
-                ),
-                html.Button(
-                    "Send", id="forge-chat-send", n_clicks=0,
-                    style={"background": "#0F766E", "color": "white", "padding": "10px 12px",
-                           "border": "none", "borderRadius": "8px", "cursor": "pointer",
-                           "fontWeight": "700"},
+                html.Div(id="forge-chat-status", role="status",
+                         style={"fontSize": _em(12), "overflowWrap": "anywhere"}),
+                html.Div(id="forge-chat-error", role="alert",
+                         style={"color": "#B91C3C", "overflowWrap": "anywhere"}),
+                html.Div(
+                    [
+                        html.Label("Message", htmlFor="forge-chat-message",
+                                   style={"fontSize": _em(12), "color": "#526579"}),
+                        dcc.Textarea(
+                            id="forge-chat-message",
+                            placeholder="Ask about registered structures…",
+                            style={"width": "100%", "minHeight": "84px", "fontFamily": "inherit",
+                                   "fontSize": _em(13), "boxSizing": "border-box", "padding": "11px",
+                                   "border": "1px solid #C7D2DF", "borderRadius": "8px",
+                                   "resize": "vertical", "background": "#FFFFFF", "color": "#172B4D"},
+                        ),
+                        html.Button(
+                            "Send", id="forge-chat-send", n_clicks=0,
+                            style={"background": "#0F766E", "color": "white", "padding": "10px 12px",
+                                   "border": "none", "borderRadius": "8px", "cursor": "pointer",
+                                   "fontWeight": "700", "fontSize": _em(13), "fontFamily": "inherit"},
+                        ),
+                    ],
+                    id="forge-chat-composer",
+                    style={
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "gap": "10px",
+                        "flexShrink": "0",
+                        "position": "sticky",
+                        "bottom": "0",
+                        "zIndex": "1",
+                        "background": "#F8FAFC",
+                        "paddingTop": "4px",
+                        "minWidth": "0",
+                    },
                 ),
                 dcc.Store(id="forge-chat-render-key", data=""),
                 dcc.Interval(id="forge-chat-poll", interval=300),
             ],
-                 # The native host now contains its diagnostics inside the viewer.
-                 className="forge-chat-panel",
-                 style={"height": "100%", "boxSizing": "border-box", "padding": "18px 16px 20px",
-                   "display": "flex", "flexDirection": "column", "gap": "10px",
-                     "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif", "fontSize": "13px",
-                     "background": "#F8FAFC", "color": "#344054"},
+            # The native host contains its diagnostics inside the viewer.
+            id="forge-chat-panel",
+            className="forge-chat-panel",
+            style=panel_style(DEFAULT_FONT_SIZE),
         )
 
     def register_web(self, app, context):
@@ -311,8 +451,19 @@ class ForgeChatExtension(Extension):
                 return (no_update,) * 6
             cards = [_web_message(message) for message in snapshot["messages"][-50:]]
             status = "Working…" if snapshot["busy"] else snapshot["status"].capitalize()
-            inputs = [html.Div(f"{item['name']} · {item['id'][:8]}") for item in snapshot["structures"]]
+            inputs = [
+                html.Div(f"{item['name']} · {item['id'][:8]}",
+                         style={"overflowWrap": "anywhere"})
+                for item in snapshot["structures"]
+            ]
             return cards, status, snapshot["busy"], inputs, _revision_strip(snapshot), render_key
+
+        @app.callback(
+            Output("forge-chat-panel", "style"),
+            Input("forge-chat-font-size", "value"),
+        )
+        def apply_font_size(step):
+            return panel_style(step)
 
     def build_tui_panel(self, context):
         from textual.containers import Vertical
@@ -421,14 +572,15 @@ def _web_message(message):
     if role != "tool":
         return html.Article([
             html.Div("You" if role == "user" else "Assistant",
-                     style={"fontSize": "12px", "fontWeight": "bold", "color": "#526579",
+                     style={"fontSize": _em(12), "fontWeight": "bold", "color": "#526579",
                             "marginBottom": "7px"}),
             html.Div(content, style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
-                                     "fontSize": "14px", "lineHeight": "1.5"}),
+                                     "fontSize": _em(14), "lineHeight": "1.5"}),
         ], style={"padding": "11px 12px", "marginBottom": "10px",
                   "background": "#EEF7F5" if role == "user" else "#FFFFFF",
                   "border": "1px solid #D9E2EC", "borderRadius": "9px",
-                  "boxShadow": "0 1px 2px rgba(23, 43, 77, 0.04)"})
+                  "boxShadow": "0 1px 2px rgba(23, 43, 77, 0.04)",
+                  "minWidth": "0", "maxWidth": "100%", "boxSizing": "border-box"})
 
     parsed = parse_tool_message(content)
     payload = parsed["payload"] if isinstance(parsed["payload"], dict) else {}
@@ -440,45 +592,58 @@ def _web_message(message):
         html.Div([
             html.Span("Tool Execution", style={"fontWeight": "750", "color": "#172B4D"}),
             html.Span(f" · {parsed['name']}", style={"color": "#526579", "fontWeight": "650"}),
-        ], style={"fontSize": "12px", "marginBottom": "6px"}),
+        ], style={"fontSize": _em(12), "marginBottom": "6px", "overflowWrap": "anywhere"}),
         html.Div([
             html.Span("Status ", style={"color": "#667085"}),
             html.Span(status.capitalize(), style={"fontWeight": "750", "color": status_color}),
-        ], style={"fontSize": "12px", "marginBottom": "6px"}),
+        ], style={"fontSize": _em(12), "marginBottom": "6px", "overflowWrap": "anywhere"}),
     ]
     if arg_bits:
         contents.append(html.Div(
             "Args: " + ", ".join(arg_bits),
-            style={"fontSize": "11px", "color": "#526579", "marginBottom": "6px",
-                   "fontFamily": "Consolas, monospace"},
+            style={"fontSize": _em(11), "color": "#526579", "marginBottom": "6px",
+                   "fontFamily": "Consolas, monospace", "overflowWrap": "anywhere"},
         ))
     if isinstance(report, dict):
         rows = []
         for check in report.get("checks", []):
             state = check.get("status", "unknown")
             rows.append(html.Tr([
-                html.Td(check["name"].replace("_", " ").capitalize(), style={"padding": "5px 0"}),
+                html.Td(check["name"].replace("_", " ").capitalize(),
+                        style={"padding": "5px 8px 5px 0", "overflowWrap": "anywhere",
+                               "verticalAlign": "top"}),
                 html.Td(state.capitalize(), style={"textAlign": "right", "fontWeight": "bold",
-                                                   "color": _STATUS_COLORS.get(state, "#526579")}),
+                                                   "color": _STATUS_COLORS.get(state, "#526579"),
+                                                   "padding": "5px 0 5px 8px",
+                                                   "overflowWrap": "anywhere",
+                                                   "verticalAlign": "top"}),
             ]))
         contents.extend([
-            html.Table(html.Tbody(rows), style={"width": "100%", "fontSize": "12px",
-                                               "borderCollapse": "collapse"}),
-            html.Div("Registered input · read-only", style={"fontSize": "11px", "color": "#526579",
-                                                               "marginTop": "8px"}),
+            html.Table([
+                html.Colgroup([html.Col(), html.Col(style={"width": "8em"})]),
+                html.Tbody(rows),
+            ], style={"width": "100%", "fontSize": _em(12),
+                      "borderCollapse": "collapse", "tableLayout": "fixed"}),
+            html.Div("Registered input · read-only",
+                     style={"fontSize": _em(11), "color": "#526579", "marginTop": "8px",
+                            "overflowWrap": "anywhere"}),
         ])
     else:
         contents.append(html.Div(parsed["summary"],
                                  style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
-                                        "fontSize": "13px", "lineHeight": "1.45",
+                                        "fontSize": _em(13), "lineHeight": "1.45",
                                         "color": "#344054"}))
     contents.append(html.Details([
-        html.Summary("Details & raw result", style={"cursor": "pointer", "color": "#526579"}),
+        html.Summary("Details & raw result", style={"cursor": "pointer", "color": "#526579",
+                                                    "fontSize": _em(12)}),
         html.Pre(content, style={"whiteSpace": "pre-wrap", "overflowWrap": "anywhere",
-                                 "fontFamily": "Consolas, monospace", "fontSize": "11px"}),
-    ], style={"fontSize": "12px", "marginTop": "8px"}))
+                                 "fontFamily": "Consolas, monospace", "fontSize": _em(11),
+                                 "margin": "8px 0 0"}),
+    ], style={"marginTop": "8px", "minWidth": "0"}))
     return html.Article(contents, style={"padding": "11px 12px", "marginBottom": "10px",
                                          "background": "#FFFFFF",
                                          "border": "1px solid #D9E2EC", "borderRadius": "9px",
                                          "borderLeft": f"3px solid {status_color}",
-                                         "boxShadow": "0 1px 2px rgba(23, 43, 77, 0.04)"})
+                                         "boxShadow": "0 1px 2px rgba(23, 43, 77, 0.04)",
+                                         "minWidth": "0", "maxWidth": "100%",
+                                         "boxSizing": "border-box"})
