@@ -75,6 +75,8 @@ def test_native_web_with_chat_returns_layout_and_direct_checks(tmp_path, monkeyp
         assert response.status_code == 200
         text = response.get_data(as_text=True)
         assert "forge-chat-transcript" in text and "crystal-graph" in text
+        assert "forge-chat-font-size" in text
+        assert '"persistence_type":"local"' in text or '"persistence_type": "local"' in text
         from mat_viewer.app.build_info import asset_url_token
         assets = f"/assets/{asset_url_token()}"
         compact_css = client.get(f"{assets}/panel_resize.css")
