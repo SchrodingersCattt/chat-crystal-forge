@@ -12,6 +12,7 @@ import re
 from mat_viewer.extensions import Extension
 
 from .service import ForgeService
+from .viewer_sync import ViewerSync
 
 _TOOL_PREFIX = re.compile(
     r"^\[(?P<source>direct|model) tool:\s*(?P<name>[^;\]]+)(?:;\s*call\s+(?P<call>\S+))?\]\s*"
@@ -197,9 +198,12 @@ class ForgeChatExtension(Extension):
         self.service = service
         self._timer = None
         self._message_ids: set[str] = set()
+        self._viewer = ViewerSync(service)
 
     def build_web_panel(self, context):
         from dash import dcc, html
+
+        self._viewer.bind(context)
 
         return html.Section(
             [
@@ -217,10 +221,10 @@ class ForgeChatExtension(Extension):
                                                       "fontWeight": "650"}),
                     html.P(
                         "Use /inspect for MCK checks and /list for input IDs. Natural-language "
-                        "chat needs a configured model. Chat edits registered copies only—not "
-                        "the live center Scene. After an Operation, reload the structure in the "
-                        "viewer manually until MatterVis exposes an extension write API "
-                        "(register/reload/focus). Preparation requires explicit scientific decisions."
+                        "chat needs a configured model. /load, /complete-h, /disorder, and "
+                        "/export update registered copies and the center viewer. Scene tabs "
+                        "are presentation slots, not scientific versions. Preparation requires "
+                        "explicit scientific decisions."
                     ),
                 ], style={"fontSize": "12px", "color": "#667085", "background": "#FFFFFF",
                           "border": "1px solid #E4E7EC", "borderRadius": "8px", "padding": "8px 10px"}),
@@ -270,6 +274,8 @@ class ForgeChatExtension(Extension):
         from dash import Input, Output, State, html, no_update
         from dash.exceptions import PreventUpdate
 
+        self._viewer.bind(context)
+
         @app.callback(
             Output("forge-chat-message", "value"), Output("forge-chat-error", "children"),
             Input("forge-chat-send", "n_clicks"), State("forge-chat-message", "value"),
@@ -289,9 +295,12 @@ class ForgeChatExtension(Extension):
             Output("forge-chat-send", "disabled"), Output("forge-chat-inputs", "children"),
             Output("forge-chat-revisions", "children"), Output("forge-chat-render-key", "data"),
             Input("forge-chat-poll", "n_intervals"), State("forge-chat-render-key", "data"),
+            State("extension-browser-target", "data"),
         )
-        def refresh(_ticks, previous_key):
+        def refresh(_ticks, previous_key, browser_target=None):
             snapshot = self.service.snapshot()
+            self._viewer.note_target(browser_target)
+            self._viewer.schedule(snapshot)
             render_key = json.dumps([
                 [message["id"] for message in snapshot["messages"][-50:]],
                 [item["id"] for item in snapshot["structures"]],
@@ -310,6 +319,7 @@ class ForgeChatExtension(Extension):
         from textual.widgets import Input, RichLog, Static
 
         service = self.service
+        self._viewer.bind(context)
 
         class ChatPanel(Vertical):
             DEFAULT_CSS = """
@@ -345,6 +355,8 @@ class ForgeChatExtension(Extension):
         from textual.widgets import Input, RichLog, Static
         from textual.css.query import NoMatches
 
+        self._viewer.bind(context)
+
         def refresh():
             snapshot = self.service.snapshot()
             try:
@@ -376,6 +388,7 @@ class ForgeChatExtension(Extension):
                 "Working…" if snapshot["busy"] else snapshot["status"]
             )
             input_widget.disabled = snapshot["busy"]
+            self._viewer.schedule(snapshot)
 
         refresh()
         self._timer = app.set_interval(0.3, refresh)
@@ -386,6 +399,7 @@ class ForgeChatExtension(Extension):
             self._timer = None
 
     def close(self):
+        self._viewer.close()
         self.service.close()
 
 

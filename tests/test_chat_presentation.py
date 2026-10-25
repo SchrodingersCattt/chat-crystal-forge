@@ -44,7 +44,9 @@ def test_chat_heading_and_setup_state(tmp_path):
         assert indexed["forge-chat-send"].style["background"] == "#0F766E"
         assert "CrystalForge" not in text(panel)
         assert "registered copies" in text(panel)
-        assert "manual" in text(panel).lower() or "reload" in text(panel).lower()
+        assert "center viewer" in text(panel)
+        assert "manually" not in text(panel).lower()
+        assert "until MatterVis" not in text(panel)
     finally:
         plugin.close()
 

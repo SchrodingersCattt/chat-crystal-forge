@@ -74,9 +74,12 @@ mat-chat tui --session .crystalforge/dap4-demo
 
 ## Code polish already on main (agent)
 
-Forge-only Chat presentation is on `main` (Tool Execution cards, revision strip,
-humanized blocked-finish copy, DEMO rejection wording). Submodules pinned MatterVis
-`v0.0.6` / MolCrysKit `v0.8.0`. Remaining Slice 6 items below are **user-only**.
+Forge Chat presentation includes Tool Execution cards, a revision strip, and
+humanized blocked-finish copy. `/load`, `/complete-h`, `/disorder`, and
+`/export` update the native center viewer through MatterVis `register` /
+`reload` / `focus`; those steps do not ask for a manual viewer reload.
+Submodule pin is MatterVis `a6c10d0` (`main`; includes #217–#219, no tag after
+`v0.0.6`) and MolCrysKit `v0.8.0`. Remaining Slice 6 items below are **user-only**.
 
 ## Slice 6 remaining — user-only
 

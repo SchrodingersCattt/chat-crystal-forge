@@ -27,10 +27,17 @@ add regression tests in the owning repo; do not duplicate state or sleep to mask
 races. Publish a reachable upstream commit before sharing a dependent parent pin.
 
 The optional `mat_viewer.extensions.Extension` host is available in the pinned
-MatterVis release (see submodule gitlink / `v0.0.6`). Forge registers Chat through
-that Extension API on actual `create_app` / `CrystalTUI` hosts — not replacement
-viewers. See [Plugin protocol](plugin-protocol.md) for hooks. Package-level write
-API and revision↔Scene mapping remain open upstream issues (#217–#219 below).
+MatterVis commit (see the submodule gitlink). That pin is `a6c10d0` on `main`,
+after tag `v0.0.6`. No later tag includes the extension write API. The commit
+contains merged PRs #220, #221 and #223 (issues #217–#219: `register` /
+`reload` / `focus`, revision↔Scene bindings, and the optional Structure
+Catalog) plus later camera and TUI fixes. Forge registers Chat through that
+Extension API on actual `create_app` / `CrystalTUI` hosts — not replacement
+viewers. After `/load`, hydrogen completion, disorder resolution and export,
+Forge calls `context.revisions.register` / `reload` / `focus` so the native
+center viewer shows the active revision. Scene tabs remain presentation slots.
+Forge keeps scientific revisions in its session store and does not use the
+optional in-memory Structure Catalog. See [Plugin protocol](plugin-protocol.md).
 No upstream bug fix is certified by this note alone.
 
 ## Checkout and reproducibility
@@ -85,17 +92,22 @@ PyPI dependency solution.
 Do not treat a parent commit as a commit of uncommitted files inside a submodule.
 Do not suppress dirty-submodule reporting or enable automatic source upgrades.
 
-## MatterVis package asks (Forge integration)
+## MatterVis viewer writes (Forge integration)
 
-Forge keeps workflow plugins in this repository. Package-level host gaps are tracked
-upstream (English, no local paths):
+Forge keeps workflow plugins in this repository. These host APIs are on the
+pinned MatterVis commit:
 
-- [MatterVis#217](https://github.com/SchrodingersCattt/MatterVis/issues/217) — extension write API (`register` / `reload` / `focus`)
-- [MatterVis#218](https://github.com/SchrodingersCattt/MatterVis/issues/218) — Forge revision ↔ Scene mapping after Operations
-- [MatterVis#219](https://github.com/SchrodingersCattt/MatterVis/issues/219) — optional Structure Catalog; Scene ≠ scientific versions
+- [MatterVis#217](https://github.com/SchrodingersCattt/MatterVis/issues/217) — extension write API (`register` / `reload` / `focus`), merged via #220
+- [MatterVis#218](https://github.com/SchrodingersCattt/MatterVis/issues/218) — revision ↔ Scene mapping after Operations, merged via #221
+- [MatterVis#219](https://github.com/SchrodingersCattt/MatterVis/issues/219) — optional Structure Catalog; Scene ≠ scientific versions, merged via #223
 
-Until #217 lands, Chat documents that Operations edit registered copies and the
-center viewer may need a manual reload.
+Forge drives the native Web and TUI viewers through `context.revisions`
+(`mattervis.revisions/v1`). A new structure is `register`ed. A later active
+revision `reload`s that structure's scene when one is already known, otherwise
+it is registered. `focus` then selects the scene. Web focus passes the page's
+`extension-browser-target` token; the terminal host omits it. Writes run on a
+worker so Dash and Textual callbacks do not wait on the future. Catalog entries
+are unnecessary because session SQLite already stores immutable revisions.
 
 ## Attribution and licenses
 

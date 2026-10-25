@@ -3,10 +3,12 @@
 This walkthrough uses the native MatterVis host and CrystalForge's local
 session state. It does not install or call `mattervis-saas`.
 
-Chat tools edit **registered copies** only. After an Operation, reload the
-structure in the center viewer manually until MatterVis ships an extension
-write API ([MatterVis#217](https://github.com/SchrodingersCattt/MatterVis/issues/217)).
-Scene tabs are presentation slots, not scientific versions
+Chat tools edit **registered copies**. After `/load`, `/complete-h`,
+`/disorder`, and `/export`, Forge updates the native center viewer through
+MatterVis `register` / `reload` / `focus`
+([MatterVis#217](https://github.com/SchrodingersCattt/MatterVis/issues/217),
+merged in #220). You do not reload that structure by hand. Scene tabs stay
+presentation slots; the Chat revision strip is the scientific history
 ([MatterVis#218](https://github.com/SchrodingersCattt/MatterVis/issues/218),
 [MatterVis#219](https://github.com/SchrodingersCattt/MatterVis/issues/219)).
 
@@ -45,9 +47,9 @@ for a reference (`awaiting_decision`). Confirm the formula, then finish:
 ```
 
 Replace `<id>` with the structure id from `/list` or the inspect card. The Chat
-revision strip lists scientific copies from the session snapshot; reload the
-center Scene yourself after preparation steps if the viewer still shows the
-launch-time file.
+revision strip lists scientific copies from the session snapshot. The center
+viewer focuses the active revision after `/complete-h`, `/disorder`, `/export`,
+and `/load`. Scene tabs are not scientific versions.
 
 Pass signals: six MCK checks on the registered copy; hydrogen completion and
 bounded disorder each create a revision; export reloads all six checks; `/finish`
