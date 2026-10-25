@@ -104,10 +104,11 @@ for code, coordinates, identifiers and logs. Allow platform fallback glyphs for
 Chinese and other text. Do not bundle proprietary font files without permission.
 
 The browser Chat panel header includes a text-size control with four steps:
-S (12px), M (13px, the default), L (16px) and XL (18px). M matches the previous
+S (12px), M (13px), L (16px, the default) and XL (18px). M matches the previous
 panel size. The choice is stored in the browser (`localStorage`, via Dash
 `persistence_type="local"` on the control) and restored when `mat-chat ui` is
-opened again. It scales messages, tool cards, captions, help and the composer
+opened again. A browser that already saved a size keeps it; L applies when
+nothing is saved. It scales messages, tool cards, captions, help and the composer
 in that pane. The 3D viewer and the terminal UI are unchanged; terminal fonts
 stay terminal-controlled. In the default 320px extension column, XL wraps
 tool-card text, revision chips and slash-command help instead of widening the pane.

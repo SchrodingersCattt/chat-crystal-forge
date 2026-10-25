@@ -216,28 +216,31 @@ def test_font_size_control_is_in_the_header_and_persists_locally(tmp_path):
         assert control.persistence is True
         assert control.persistence_type == "local"
         assert control.persisted_props == ["value"]
-        assert control.value == DEFAULT_FONT_SIZE == "default"
+        assert control.value == DEFAULT_FONT_SIZE == "large"
         assert [(item["value"], item["label"]) for item in control.options] == [
             (step, label) for step, label, _size in FONT_SIZE_STEPS
         ]
         assert [font_size_px(step) for step, _label, _size in FONT_SIZE_STEPS] == [
             "12px", "13px", "16px", "18px",
         ]
-        assert font_size_px("not-a-step") == "13px"
+        assert font_size_px("not-a-step") == "16px"
+        assert font_size_px("large") == "16px"
         assert panel_style("xlarge")["fontSize"] == "18px"
         assert panel_style("xlarge")["minWidth"] == "0"
         assert panel_style("xlarge")["maxWidth"] == "100%"
-        assert panel_style(None)["fontSize"] == "13px"
-        assert panel.style["fontSize"] == "13px"
+        assert panel_style(None)["fontSize"] == "16px"
+        assert panel_style("default")["fontSize"] == "13px"
+        assert panel.style["fontSize"] == "16px"
         assert panel.style["background"] == "#F8FAFC"
         root_sizes = [size for element_id, size in font_sizes(panel) if element_id == "forge-chat-panel"]
-        assert root_sizes == ["13px"]
+        assert root_sizes == ["16px"]
         for element_id, size in font_sizes(panel):
             if element_id == "forge-chat-panel":
                 continue
             assert size == "1em" or size.endswith("em / 13)"), (element_id, size)
         visible = text(panel)
         assert "Text size" in visible
+        assert "L is the default" in visible
         assert "saved in this browser" in visible
         assert "/inspect" in visible and "/disorder" in visible and "/finish" in visible
         assert any(
@@ -273,7 +276,7 @@ def test_font_size_callback_applies_the_selected_step(tmp_path):
         largest = callback("xlarge")
         assert largest["fontSize"] == "18px"
         assert largest["overflowY"] == "auto"
-        assert callback("nope")["fontSize"] == "13px"
+        assert callback("nope")["fontSize"] == "16px"
     finally:
         plugin.close()
 

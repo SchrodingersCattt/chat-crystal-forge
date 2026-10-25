@@ -41,16 +41,18 @@ def _reason_label(code: str | None) -> str:
     return _REASON_LABELS.get(str(code), str(code))
 
 
-# Root sizes for the Chat panel text-size control. M (13px) matches the previous
-# panel. Child font sizes are em against this 13px base so one root change scales
-# messages, tool cards, captions and the composer together.
+# Root sizes for the Chat panel text-size control. L (16px) is the default when
+# this browser has not saved a choice. M (13px, step id "default") matches the
+# previous panel and stays selectable. Child font sizes are em against this 13px
+# design base so one root change scales messages, tool cards, captions and the
+# composer together.
 FONT_SIZE_STEPS: tuple[tuple[str, str, str], ...] = (
     ("small", "S", "12px"),
     ("default", "M", "13px"),
     ("large", "L", "16px"),
     ("xlarge", "XL", "18px"),
 )
-DEFAULT_FONT_SIZE = "default"
+DEFAULT_FONT_SIZE = "large"
 _FONT_ROOT_PX = {step: size for step, _label, size in FONT_SIZE_STEPS}
 _FONT_BASE_PX = 13
 
@@ -61,7 +63,7 @@ def font_size_px(step: str | None) -> str:
 
 
 def _em(px: int) -> str:
-    """Design pixel size that tracks the panel root (13px at the default step).
+    """Design pixel size that tracks the panel root (designed at the 13px M step).
 
     Set this only on elements whose ancestor font size is the panel root.
     Nested em values would compound.
@@ -283,7 +285,7 @@ def _font_size_control():
             ),
         ],
         id="forge-chat-font-control",
-        title="Chat text size: S, M (default), L, XL. Saved in this browser.",
+        title="Chat text size: S, M, L (default), XL. Saved in this browser.",
         style={
             "display": "flex",
             "flexWrap": "wrap",
@@ -335,7 +337,7 @@ class ForgeChatExtension(Extension):
                     html.Summary("How to use", style={"cursor": "pointer", "color": "#344054",
                                                       "fontWeight": "650"}),
                     html.P(
-                        "Text size (S, M, L, XL) is at the top of this panel. M is the default "
+                        "Text size (S, M, L, XL) is at the top of this panel. L is the default "
                         "and the choice is saved in this browser. Slash commands stay available "
                         "at every size: /inspect, /list, /complete-h, /disorder, /export, /finish "
                         "and /help. Use /inspect for MCK checks and /list for input IDs. "
